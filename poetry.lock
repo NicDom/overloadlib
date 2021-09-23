@@ -808,16 +808,16 @@ test = ["pytest", "pytest-cov"]
 
 [[package]]
 name = "sphinx-click"
-version = "2.7.1"
+version = "3.0.1"
 description = "Sphinx extension that automatically documents click applications"
 category = "dev"
 optional = false
-python-versions = "*"
+python-versions = ">=3.6"
 
 [package.dependencies]
-click = ">=6.0,<8.0"
+click = ">=7.0"
 docutils = "*"
-sphinx = ">=1.5,<4.0"
+sphinx = ">=2.0"
 
 [[package]]
 name = "sphinx-rtd-theme"
@@ -1029,7 +1029,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7.1"
-content-hash = "97a39f6cde6f91a07f9ce66a3881337645c2d098ffb00a43fbea6fb28f93f77a"
+content-hash = "ea6be151012a0157826ecb4ca430df2cfaba681e529dbbf4da1b1cd49aa214c0"
 
 [metadata.files]
 alabaster = [
@@ -1531,8 +1531,8 @@ sphinx-autobuild = [
     {file = "sphinx_autobuild-2020.9.1-py3-none-any.whl", hash = "sha256:df5c72cb8b8fc9b31279c4619780c4e95029be6de569ff60a8bb2e99d20f63dd"},
 ]
 sphinx-click = [
-    {file = "sphinx-click-2.7.1.tar.gz", hash = "sha256:1b6175df5392564fd3780000d4627e5a2c8c3b29d05ad311dbbe38fcf5f3327b"},
-    {file = "sphinx_click-2.7.1-py2.py3-none-any.whl", hash = "sha256:e738a2c7a87f23e67da4a9e28ca6f085d3ca626f0e4164847f77ff3c36c65df1"},
+    {file = "sphinx-click-3.0.1.tar.gz", hash = "sha256:9b24c46f3b8f25fc639f47c97ac0361d9f80d48c2ed6b3917de2865bbdbe1785"},
+    {file = "sphinx_click-3.0.1-py3-none-any.whl", hash = "sha256:e9ee2237e5a6b6620e9996b8214934afdf8f7f9f9fc082482c77be0e4379038e"},
 ]
 sphinx-rtd-theme = [
     {file = "sphinx_rtd_theme-0.5.2-py2.py3-none-any.whl", hash = "sha256:4a05bdbe8b1446d77a01e20a23ebc6777c74f43237035e76be89699308987d6f"},
