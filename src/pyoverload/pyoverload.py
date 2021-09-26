@@ -9,7 +9,6 @@ from typing import get_type_hints
 from typing import List
 from typing import Optional
 from typing import Tuple
-from typing import Type
 from typing import Union
 
 
@@ -18,7 +17,7 @@ __all__ = ["Function", "Namespace", "overload"]
 
 ArgsType = Optional[List[Any]]
 KwargsType = Optional[Dict[str, Any]]
-NsKTypeHints = Union[
+NspKeyTypeHints = Union[
     Tuple[Tuple[Any, ...], Tuple[Any, ...]], Tuple[Any, ...], FrozenSet[Any]
 ]
 
@@ -39,15 +38,15 @@ class NamespaceKey:
         module (str): The module of the overloaded function.
         qualname (str): The __qualname__ of the overloaded function.
         name (str): The __name__ of the overloaded function.
-        type_hints (Any): The type_hints of the overloaded function. By default they
-            stored as a tuple of two tuple: the first giving the arg-names, the
-            second giving the the types of the args.
+        type_hints (NspKeyTypeHints): The type_hints of the overloaded function. By
+            default they stored as a tuple of two tuple: the first giving the arg-names,
+            the second giving the the types of the args.
     """
 
     module: str
     qualname: str
     name: str
-    type_hints: NsKTypeHints
+    type_hints: NspKeyTypeHints
 
     @property
     def unordered(self) -> "NamespaceKey":
@@ -62,15 +61,14 @@ class NamespaceKey:
             NamespaceKey: The NamespaceKey `self`, but with the type hints stored as
                 a frozen set.
         """
-        # if isinstance(self.type_hints, FrozenSet):
-        #     return self
-        # elif isinstance(self.type_hints[0], tuple):
-        #     type_hints = frozenset(self.type_hints)
-        # else:
-
-        type_hints = frozenset(
-            dict(zip(self.type_hints[0], self.type_hints[1])).items()
-        )
+        if isinstance(self.type_hints, frozenset):
+            return self
+        if not isinstance(self.type_hints[0], tuple):  # pragma: no cover
+            type_hints = frozenset(self.type_hints)
+        else:
+            type_hints = frozenset(
+                dict(zip(self.type_hints[0], self.type_hints[1])).items()
+            )
         return NamespaceKey(
             module=self.module,
             qualname=self.qualname,
@@ -118,7 +116,7 @@ class NamespaceKey:
             + "):\n\t\t..."
         )
 
-    def _str_for_type_hint_tuple(self, type_hints: Dict[str, type]) -> str:
+    def _str_for_type_hint_tuple(self, type_hints: Tuple[Any, ...]) -> str:
         """Private helper function for creating __str__.
 
         Called if `self.type_hints` are valid list, and thus, only if the
@@ -135,7 +133,7 @@ class NamespaceKey:
             [f"{hint.__name__}" for hint in type_hints]
         )  # pragma: no cover
 
-    def _str_unordered(self) -> str:  # pragma: no cover
+    def _str_unordered(self) -> str:  # pragma: no cover   # type: ignore
         """Private helper function for creating __str__.
 
         Called if the NamespaceKey type hints are unordered.
@@ -145,14 +143,14 @@ class NamespaceKey:
         """
         msg = f"({self.module}.{self.qualname}):"
         try:
-            type_hints = dict(self.type_hints)
+            type_hints = dict(self.type_hints)  # type: ignore
             msg += self._str_for_type_hint_dict(type_hints)
         except (TypeError, ValueError):
-            type_hints = tuple(self.type_hints)
-            msg += self._str_for_type_hint_tuple(type_hints)
+            type_hints = tuple(self.type_hints)  # type: ignore
+            msg += self._str_for_type_hint_tuple(type_hints)  # type: ignore
         return msg
 
-    def _str_ordered(self) -> str:
+    def _str_ordered(self) -> str:  # pragma: no cover
         """Private helper function for creating __str__.
 
         Called if the NamespaceKey type hints are ordered.
@@ -162,11 +160,11 @@ class NamespaceKey:
         """
         msg = f"({self.module}.{self.qualname}):"
         try:
-            type_hints = dict(zip(self.type_hints[0], self.type_hints[1]))
+            type_hints = dict(zip(self.type_hints[0], self.type_hints[1]))  # type: ignore # noqa: B950
             msg += self._str_for_type_hint_dict(type_hints)
-        except (TypeError, ValueError):  # pragma: no cover
-            type_hints = self.type_hints  # pragma: no cover
-            msg += self._str_for_type_hint_tuple(type_hints)  # pragma: no cover
+        except (TypeError, ValueError):
+            type_hints = self.type_hints  # type: ignore
+            msg += self._str_for_type_hint_tuple(type_hints)  # type: ignore
         return msg
 
     def __str__(self) -> str:
@@ -199,30 +197,28 @@ class NamespaceKey:
 ######################################
 
 
-def _overload_func_wrap() -> Callable[..., Any]:
+def _overload_func_wrap(f: Callable[..., Any]) -> Callable[..., Any]:
     """Inserts `self`, if function is a method.
 
     Required as a function is only turned into a method, after
     the metaclass to the class was create.
     Used in `Function.__call__` for example.
 
+    Args:
+        f (Callable): The function we to wrap.
+
     Returns:
         Callable: The wrapped function, as a method if necessary
     """
 
-    def func(f: Callable[..., Any]) -> Callable[..., Any]:
-        @wraps(f)
-        def inner_func(
-            _cls_or_self_: Any, *args: ArgsType, **kwargs: KwargsType
-        ) -> Any:
-            if _cls_or_self_ is None:
-                return f(*args, **kwargs)
-            else:
-                return f(_cls_or_self_, *args, **kwargs)
+    @wraps(f)
+    def inner_func(_cls_or_self_: Any, *args: ArgsType, **kwargs: KwargsType) -> Any:
+        if _cls_or_self_ is None:
+            return f(*args, **kwargs)
+        else:
+            return f(_cls_or_self_, *args, **kwargs)
 
-        return inner_func
-
-    return func
+    return inner_func
 
 
 def _as_ordered_key(
@@ -260,58 +256,27 @@ def _generate_key(
         NamespaceKey: The NamespaceKey for the function,
     """
     arg_dict = dict()
+    if kwargs is None:
+        kwargs = dict()
     if args is None:
-        type_hints = {
+        hints = {
             key: value for key, value in get_type_hints(func).items() if key != "return"
         }
-        args = _as_ordered_key(type_hints)
+        type_hints = _as_ordered_key(hints)
     else:
         if kwargs != {}:
             for key, value in kwargs.items():
                 arg_dict[key] = type(value)
-            args = _as_ordered_key(arg_dict)
+            type_hints = _as_ordered_key(arg_dict)
         else:
-            args = tuple([type(args[i]) for i in range(len(args))])
-
+            type_hints = tuple([type(args[i]) for i in range(len(args))])  # type: ignore # noqa: B950
     result = NamespaceKey(
         module=func.__module__,
         qualname=func.__qualname__,
         name=func.__name__,
-        type_hints=args,
+        type_hints=type_hints,
     )
     return result
-
-
-def get_overloads(func: Callable[..., Any]) -> List[NamespaceKey]:
-    """Returns overloaded versions of a function.
-
-    Args:
-        func (Callable[..., Any]): The function, whose versions we would
-            like to know.
-
-    Returns:
-        List[NamespaceKey]: A list containing the existing NamespaceKey for
-            the function `func`.
-    """
-    func_key = _generate_key(func.__wrapped__)
-    return Namespace.get_instance().keys_matching_func_name(func_key)
-
-
-def print_overloads(func: Callable[..., Any]) -> None:
-    """Prints the overloaded versions of a function.
-
-    Args:
-        func (Callable[..., Any]): The function, whose version we would like to
-            print.
-
-    Returns:
-        str: String containing information on the several version of an
-            overloaded function.
-    """
-    msg = f"Following overloads of '{func.__qualname__}' exist:\n"
-    msg += "\n".join([key.__str__() for key in get_overloads(func)])
-    print(msg)
-    return msg
 
 
 ######################################
@@ -329,7 +294,7 @@ class NoFunctionFoundError(PyOverloadError):
     def __init__(
         self,
         func_key: Optional[NamespaceKey] = None,
-        message: Optional[str] = "No matching function found.\n",
+        message: str = "No matching function found.\n",
     ):
         self.func_key = func_key
         self.message = message
@@ -349,7 +314,7 @@ class NoFunctionFoundError(PyOverloadError):
 ######################################
 
 
-class Function(partial):
+class Function(partial):  # type: ignore
     """Class wrapping a callable.
 
     Subclass of functools.partial.
@@ -374,9 +339,9 @@ class Function(partial):
             *args (ArgsType): Additional optional args.
             **keywords (KwargsType): Additional optional kwargs.
         """
-        self.owner = None
+        super().__init__()  # type: ignore
+        self.owner = None  # type: Optional[Union[Any, "Function"]]
         self.__qualname__ = self.func.__qualname__
-        super().__init__()
 
     def __get__(self, owner: Any, owner_type: Optional[type] = None) -> "Function":
         """__get__-dunder method of Function.
@@ -414,8 +379,8 @@ class Function(partial):
             raise NoFunctionFoundError(self.key(args, kwargs))
 
         # invoking the wrapped function and returning the value.
-        fn = _overload_func_wrap()(fn)
-        return fn(self.owner, *args, **kwargs)
+        func = _overload_func_wrap(fn)
+        return func(self.owner, *args, **kwargs)
 
     def key(
         self, args: Optional[Any] = None, kwargs: Optional[Any] = None
@@ -452,7 +417,7 @@ class Function(partial):
 class Namespace(object):
     """Singleton class that is responsible for holding all the functions."""
 
-    __instance = None
+    __instance: Optional["Namespace"] = None
 
     def __init__(self) -> None:
         """__init__-methode for class `Namespace`.
@@ -477,9 +442,9 @@ class Namespace(object):
         """
         if Namespace.__instance is None:
             Namespace()
-        return Namespace.__instance
+        return Namespace.__instance  # type: ignore
 
-    def register(self, fn: Callable[..., Any]) -> Type[Function]:
+    def register(self, fn: Callable[..., Any]) -> Function:
         """Registers the function in the virtual namespace.
 
         Registers the function in the virtual namespace and returns
@@ -490,7 +455,7 @@ class Namespace(object):
             fn (Callable): The function to be registered.
 
         Returns:
-            Type[Function]: The wrapped function `Function(fn)`.
+            Function: The wrapped function `Function(fn)`.
         """
         func = Function(fn)
         self.function_map[func.key()] = fn
@@ -498,7 +463,7 @@ class Namespace(object):
 
     def get(
         self, fn: Callable[..., Any], *args: Any, **kwargs: Any
-    ) -> Optional[Function]:
+    ) -> Optional[Callable[..., Any]]:
         """Returns the matching function.
 
         Tries to find the desired function for given args and kwargs using several
@@ -549,16 +514,28 @@ class Namespace(object):
 
         Returns:
             List[str]: List containing the typing information.
+
+        Raises:
+            TypeError: if one of the NamespaceKeys in `val_keys` is
+                unordered.
         """
         results = []
         for val_key in val_keys:
-            keys = val_key.type_hints[0]
-            values = val_key.type_hints[-1]
-            result = [
-                f"'{key}' needs to be of type {value}\n"
-                for key, value in zip(keys, values)
-            ]
-            results += result
+            if not isinstance(val_key.type_hints, frozenset):
+                keys = val_key.type_hints[0]
+                values = val_key.type_hints[-1]
+                result = [
+                    f"'{key}' needs to be of type {value}\n"
+                    for key, value in zip(keys, values)
+                ]
+                results += result
+            else:
+                raise (
+                    TypeError(
+                        f"{val_key!r} is an unordered key, but keys need to ordered."
+                    )
+                )  # pragma: no cover
+
         return results
 
     def keys_matching_func_name(self, func_key: NamespaceKey) -> List[NamespaceKey]:
@@ -572,7 +549,9 @@ class Namespace(object):
         """
         return [key for key in self.function_map.keys() if key.meta == func_key.meta]
 
-    def match_only_by_type(self, func_key: NamespaceKey) -> Optional[Function]:
+    def match_only_by_type(
+        self, func_key: NamespaceKey
+    ) -> Optional[Callable[..., Any]]:
         """Returns the wrapped function, if a type-match was found.
 
         Compares only the namespace keys, given by `keys_matching_func_name`. A
@@ -588,13 +567,12 @@ class Namespace(object):
         """
         opt_keys = self.keys_matching_func_name(func_key=func_key)
         for key in opt_keys:
-            args = key.type_hints[-1]
-            # print("key_args", args)
+            args = key.type_hints[-1]  # type: ignore
             if func_key.type_hints == args:
                 return self.function_map.get(key)
         return None
 
-    def match_by_kwargs(self, func_key: NamespaceKey) -> Optional[Function]:
+    def match_by_kwargs(self, func_key: NamespaceKey) -> Optional[Callable[..., Any]]:
         """Returns the wrapped function using the keyword arguments of the function.
 
         Neglects the order of the keywords.
@@ -606,13 +584,12 @@ class Namespace(object):
             Optional[Function]: The wrapped function, if a match was found,
                 None otherwise.
         """
-        if isinstance(func_key.type_hints[0], tuple):
+        if not isinstance(func_key.type_hints, frozenset):
             copy = tuple([key.unordered for key in self.function_map.keys()])
-            # print("copy", copy)
             key_dict = dict(zip(copy, self.function_map.keys()))
             match = key_dict.get(func_key.unordered)
-            return self.function_map.get(match)
-        return None
+            return self.function_map.get(match)  # type: ignore
+        return None  # pragma: no cover
 
     def func_arg_names_matchin_kwargs_keys(
         self, func_key: NamespaceKey
@@ -625,18 +602,16 @@ class Namespace(object):
         Returns:
             List[NamespaceKey]: The matching keys in the virtual namespace.
         """
-        opt_keys = self.keys_matching_func_name(func_key=func_key)
-        func_key_kwarg_keys = (
-            func_key.type_hints[0]
-            if isinstance(func_key.type_hints[0], tuple)
-            else None
-        )
-        return [key for key in opt_keys if func_key_kwarg_keys == key.type_hints[0]]
-
-
-######################################
-#            WRAPPER
-######################################
+        if not isinstance(func_key.type_hints, frozenset):
+            opt_keys = self.keys_matching_func_name(func_key=func_key)
+            return [
+                key
+                for key in opt_keys
+                if func_key.type_hints[0]
+                == key.type_hints[0]  # type:  ignore # noqa:  B950
+            ]
+        else:
+            return []  # pragma: no cover
 
 
 def overload(fn: Callable[..., Any]) -> Function:
@@ -652,3 +627,39 @@ def overload(fn: Callable[..., Any]) -> Function:
         Function: The registered and wrapped function `fn`.
     """
     return Namespace.get_instance().register(fn)
+
+
+############################################################################
+#  FUNCTIONS FOR RETURNING INFORMATION ON OVERLOADED FUNCTIONS/METHODS
+############################################################################
+
+
+def get_overloads(func: Function) -> List[NamespaceKey]:
+    """Returns overloaded versions of a function.
+
+    Args:
+        func (Function): The function, whose versions we would
+            like to know.
+
+    Returns:
+        List[NamespaceKey]: A list containing the existing NamespaceKey for
+            the function `func`.
+    """
+    func_key = _generate_key(func.__wrapped__)
+    return Namespace.get_instance().keys_matching_func_name(func_key)
+
+
+def func_versions_info(func: Function) -> str:
+    """Returns the information on versions of a function.
+
+    Args:
+        func (Function): The function, whose version we would like to
+            print.
+
+    Returns:
+        str: String containing information on the several version of an
+            overloaded function.
+    """
+    msg = f"Following overloads of '{func.__qualname__}' exist:\n"
+    msg += "\n".join([key.__str__() for key in get_overloads(func)])
+    return msg

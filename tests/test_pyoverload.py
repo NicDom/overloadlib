@@ -8,11 +8,11 @@ from typing import Tuple
 import pytest
 
 from pyoverload.pyoverload import _generate_key
+from pyoverload.pyoverload import func_versions_info
 from pyoverload.pyoverload import Function
 from pyoverload.pyoverload import NamespaceKey
 from pyoverload.pyoverload import NoFunctionFoundError
 from pyoverload.pyoverload import overload
-from pyoverload.pyoverload import print_overloads
 
 
 def as_valid_key(dictionary: Dict[Any, Any]) -> Tuple[Any, Any]:
@@ -145,8 +145,8 @@ def test_overload_on_class_method() -> None:
     assert some_func(obj=Hello()) == "Hello"
 
 
-def test_printing():
-    """Test string representation of NamespaceKey."""
+def test_namespacekey() -> None:
+    """Test string representation and other features of NamespaceKey."""
 
     @overload
     def some_func(str_1: str, int_1: int):
@@ -156,5 +156,6 @@ def test_printing():
     def some_func(str_1: str):  # noqa: F811
         return str_1
 
-    assert "def some_func(str_1: str, int_1: int):" in print_overloads(some_func)
+    assert some_func.key().unordered.unordered == some_func.key().unordered
+    assert "def some_func(str_1: str, int_1: int):" in func_versions_info(some_func)
     assert str(some_func.key().unordered) == some_func.key().unordered._str_unordered()
