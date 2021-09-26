@@ -2,7 +2,7 @@
 import pytest
 from click.testing import CliRunner
 
-from pyoverload import __main__
+from overloadlib import __main__
 
 
 @pytest.fixture
