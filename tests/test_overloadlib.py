@@ -7,12 +7,12 @@ from typing import Tuple
 
 import pytest
 
-from pyoverload.pyoverload import _generate_key
-from pyoverload.pyoverload import func_versions_info
-from pyoverload.pyoverload import Function
-from pyoverload.pyoverload import NamespaceKey
-from pyoverload.pyoverload import NoFunctionFoundError
-from pyoverload.pyoverload import overload
+from overloadlib.overloadlib import _generate_key
+from overloadlib.overloadlib import func_versions_info
+from overloadlib.overloadlib import Function
+from overloadlib.overloadlib import NamespaceKey
+from overloadlib.overloadlib import NoFunctionFoundError
+from overloadlib.overloadlib import overload
 
 
 def as_valid_key(dictionary: Dict[Any, Any]) -> Tuple[Any, Any]:
@@ -129,7 +129,7 @@ def test_overload_on_class_method() -> None:
     assert some_func(**kwargs) == "Number: 1"
     assert some_func(*args) == "Number: 1"
     assert some_func("cheese") == "cheese"
-    assert func("cheese") == "yummy cheese"
+    assert func("cheese") == "yummy cheese"  # type: ignore
     assert some_func(str_1="cheese") == "cheese"
     with pytest.raises(TypeError) as excinfo:
         some_func(str_1=2)

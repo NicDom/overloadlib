@@ -9,7 +9,7 @@ import nox_poetry.patch
 from nox.sessions import Session
 
 
-package = "pyoverload"
+package = "overloadlib"
 python_versions = ["3.9", "3.8", "3.7"]
 nox.options.sessions = (
     "pre-commit",
@@ -146,7 +146,7 @@ def typeguard(session: Session) -> None:
     """Runtime type checking using Typeguard."""
     session.install(".")
     session.install("pytest", "typeguard", "pygments")
-    session.run("pytest", f"--typeguard-packages={package}", *session.posargs)
+    session.run("pytest", f"--typeguard-packages={'overloadlib.py'}", *session.posargs)
 
 
 @nox.session(python=python_versions)

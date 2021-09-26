@@ -5,8 +5,8 @@ import click
 @click.command()
 @click.version_option()
 def main() -> None:
-    """pyoverload."""
+    """overloadlib."""
 
 
 if __name__ == "__main__":
-    main(prog_name="pyoverload")  # pragma: no cover
+    main(prog_name="overloadlib")  # pragma: no cover

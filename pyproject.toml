@@ -1,13 +1,13 @@
 [tool.poetry]
-name = "pyoverload"
-version = "0.0.0"
-description = "pyoverload"
+name = "overloadlib"
+version = "0.1.0"
+description = "overloadlib"
 authors = ["Niclas D. Gesing <nicdomgesing@gmail.com>"]
 license = "MIT"
 readme = "README.rst"
-homepage = "https://github.com/NicDom/pyoverload"
-repository = "https://github.com/NicDom/pyoverload"
-documentation = "https://pyoverload.readthedocs.io"
+homepage = "https://github.com/NicDom/overloadlib"
+repository = "https://github.com/NicDom/overloadlib"
+documentation = "https://overloadlib.readthedocs.io"
 classifiers = [
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
@@ -15,7 +15,7 @@ classifiers = [
 ]
 
 [tool.poetry.urls]
-Changelog = "https://github.com/NicDom/pyoverload/releases"
+Changelog = "https://github.com/NicDom/overloadlib/releases"
 
 [tool.poetry.dependencies]
 python = "^3.7.1"
@@ -47,14 +47,14 @@ Pygments = "^2.7.1"
 pydantic = "^1.8.2"
 
 [tool.poetry.scripts]
-pyoverload = "pyoverload.__main__:main"
+overloadlib = "overloadlib.__main__:main"
 
 [tool.coverage.paths]
 source = ["src", "*/site-packages"]
 
 [tool.coverage.run]
 branch = true
-source = ["pyoverload"]
+source = ["overloadlib"]
 [tool.coverage.report]
 show_missing = true
 fail_under = 100
