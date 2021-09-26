@@ -116,6 +116,10 @@ def test_overload_on_class_method() -> None:
         def func(self, obj: Hello) -> str:  # noqa: F811
             return obj.text
 
+    @overload
+    def func(str_1: str) -> str:
+        return "yummy " + str_1
+
     some = Some()
     some_func = some.func
     kwargs = {"str_1": "Number: ", "int_1": 1}
@@ -125,6 +129,7 @@ def test_overload_on_class_method() -> None:
     assert some_func(**kwargs) == "Number: 1"
     assert some_func(*args) == "Number: 1"
     assert some_func("cheese") == "cheese"
+    assert func("cheese") == "yummy cheese"
     assert some_func(str_1="cheese") == "cheese"
     with pytest.raises(TypeError) as excinfo:
         some_func(str_1=2)

@@ -209,6 +209,17 @@ def _overload_func_wrap(f: Callable[..., Any]) -> Callable[..., Any]:
 
     Returns:
         Callable: The wrapped function, as a method if necessary
+
+    Example:
+        >>> class Some():
+        >>>     @overload
+        >>>     def func(self, var: str) -> str:
+        >>>         return var
+        >>> @overload
+        >>> def func(var: str) -> str:
+        >>>     return var * 5
+        >>> assert func("a") == "aaaaa"
+        >>> assert Some().func("a") == "a"
     """
 
     @wraps(f)
@@ -235,6 +246,10 @@ def _as_ordered_key(
 
     Returns:
         Tuple[tuple, tuple]: The tuple.
+
+    Example:
+        >>> hints = {"a": 1, "b": 2}
+        >>> assert _as_ordered_key(hints) == (('a', 'b'), (1, 2))
     """
     keys = tuple([key for key in dictionary.keys()])
     values = tuple([value for value in dictionary.values()])
@@ -625,6 +640,18 @@ def overload(fn: Callable[..., Any]) -> Function:
 
     Returns:
         Function: The registered and wrapped function `fn`.
+
+    Example:
+        >>> @overload
+        >>> def func(var: str):
+                return var
+
+        >>> @overload
+        >>> def func(var: int):
+                return str(var * 5)
+        >>> assert func("a") == "a"
+        >>> "a: " + func(1)
+        "a: 5"
     """
     return Namespace.get_instance().register(fn)
 
@@ -644,6 +671,19 @@ def get_overloads(func: Function) -> List[NamespaceKey]:
     Returns:
         List[NamespaceKey]: A list containing the existing NamespaceKey for
             the function `func`.
+
+    Example:
+        >>> @overload
+        >>> def func(var: str):
+                return var
+
+        >>> @overload
+        >>> def func(var: int):
+                return str(var * 5)
+        >>> @overload
+        >>> def other_func():
+                pass
+        >>> assert _generate_key(other_func.__wrapped__) not in get_overload(func)
     """
     func_key = _generate_key(func.__wrapped__)
     return Namespace.get_instance().keys_matching_func_name(func_key)
@@ -659,6 +699,25 @@ def func_versions_info(func: Function) -> str:
     Returns:
         str: String containing information on the several version of an
             overloaded function.
+
+    Example:
+        >>> @overload
+        >>> def func(var: str):
+                return var
+
+        >>> @overload
+        >>> def func(var: int):
+                return str(var * 5)
+        >>> @overload
+        >>> def other_func():
+                pass
+        >>> print(func_versions_info(func))
+        (__main__.func):
+            def func(var: str):
+                ...
+        (__main__.func):
+            def func(var: int):
+                ...
     """
     msg = f"Following overloads of '{func.__qualname__}' exist:\n"
     msg += "\n".join([key.__str__() for key in get_overloads(func)])
