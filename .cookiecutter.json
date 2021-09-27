@@ -2,9 +2,9 @@
   "_template": "cookiecutter-hypermodern-python",
   "author": "Niclas D. Gesing",
   "email": "nicdomgesing@gmail.com",
-  "friendly_name": "pyoverload",
+  "friendly_name": "overloadlib",
   "github_user": "NicDom",
-  "package_name": "pyoverload",
-  "project_name": "pyoverload",
+  "package_name": "overloadlib",
+  "project_name": "overloadlib",
   "version": "0.0.0"
 }

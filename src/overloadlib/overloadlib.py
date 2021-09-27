@@ -1,16 +1,21 @@
-from dataclasses import dataclass  # noqa: D100
-from functools import partial
-from functools import wraps
+"""overloadlib.py.
+
+Implements `overload` feature in python.
+"""
+
 from typing import Any
 from typing import Callable
 from typing import Dict
 from typing import FrozenSet
-from typing import get_type_hints
 from typing import List
 from typing import Optional
 from typing import Tuple
 from typing import Union
+from typing import get_type_hints
 
+from dataclasses import dataclass
+from functools import partial
+from functools import wraps
 
 __all__ = ["Function", "Namespace", "overload"]
 

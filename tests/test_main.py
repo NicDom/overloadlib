@@ -1,3 +1,4 @@
+# type: ignore[attr-defined]
 """Test cases for the __main__ module."""
 import pytest
 from click.testing import CliRunner

@@ -13,4 +13,4 @@
    contributing
    Code of Conduct <codeofconduct>
    License <license>
-   Changelog <https://github.com/NicDom/pyoverload/releases>
+   Changelog <https://github.com/NicDom/overloadlib/releases>
