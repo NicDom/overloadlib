@@ -8,7 +8,6 @@ import nox
 import nox_poetry.patch
 from nox.sessions import Session
 
-
 package = "overloadlib"
 python_versions = ["3.9", "3.8", "3.7"]
 nox.options.sessions = (
@@ -32,8 +31,8 @@ def activate_virtualenv_in_precommit_hooks(session: Session) -> None:
     Args:
         session: The Session object.
     """
-    if session.bin is None:
-        return
+    # if session.bin is None:
+    #     return
 
     virtualenv = session.env.get("VIRTUAL_ENV")
     if virtualenv is None:

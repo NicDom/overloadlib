@@ -1,7 +1,6 @@
 """Sphinx configuration."""
 from datetime import datetime
 
-
 project = "pyoverload"
 author = "Niclas D. Gesing"
 copyright = f"{datetime.now().year}, {author}"

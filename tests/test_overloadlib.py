@@ -1,17 +1,23 @@
-from dataclasses import dataclass  # noqa: D100
+"""test_overloadlib.py.
+
+Tests the module overloadlib.py
+"""
+
 from typing import Any
 from typing import Callable
 from typing import Dict
-from typing import get_type_hints
 from typing import Tuple
+from typing import get_type_hints
+
+from dataclasses import dataclass
 
 import pytest
 
-from overloadlib.overloadlib import _generate_key
-from overloadlib.overloadlib import func_versions_info
 from overloadlib.overloadlib import Function
 from overloadlib.overloadlib import NamespaceKey
 from overloadlib.overloadlib import NoFunctionFoundError
+from overloadlib.overloadlib import _generate_key
+from overloadlib.overloadlib import func_versions_info
 from overloadlib.overloadlib import overload
 
 
