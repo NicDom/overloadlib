@@ -6,7 +6,7 @@ Reference
     :backlinks: none
 
 
-pyoverload.__main__
+overloadlib.__main__
 -------------------
 
 .. automodule:: overloadlib.__main__
