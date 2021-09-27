@@ -5,7 +5,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "overloadlib"
-version = "0.1.0"
+version = "0.1.1"
 description = "overloadlib"
 authors = ["Niclas D. Gesing <nicdomgesing@gmail.com>"]
 license = "MIT"
