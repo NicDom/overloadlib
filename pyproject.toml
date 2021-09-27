@@ -1,3 +1,8 @@
+# Poetry pyproject.toml: https://python-poetry.org/docs/pyproject/
+[build-system]
+requires = ["poetry_core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.poetry]
 name = "overloadlib"
 version = "0.1.0"
@@ -9,8 +14,10 @@ homepage = "https://github.com/NicDom/overloadlib"
 repository = "https://github.com/NicDom/overloadlib"
 documentation = "https://overloadlib.readthedocs.io"
 
+# Keywords description https://python-poetry.org/docs/pyproject/#keywords
 keywords = ["python", "overload", "dispatch"]  #! Update me
 
+# Pypi classifiers: https://pypi.org/classifiers/
 classifiers = [
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
@@ -47,7 +54,7 @@ flake8-docstrings = "^1.5.0"
 flake8-rst-docstrings = "^0.0.14"
 pep8-naming = "^0.11.1"
 darglint = "^1.5.5"
-reorder-python-imports = "^2.3.5"
+isort = {extras = ["colors"], version = "^5.9.3"}
 pre-commit-hooks = "^3.2.0"
 sphinx-rtd-theme = "^1.0.0"
 sphinx-click = "^3.0.1"
@@ -102,7 +109,3 @@ multi_line_output = 3
 force_single_line = true
 indent = 4
 color_output = true
-
-[build-system]
-requires = ["poetry_core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
