@@ -9,5 +9,5 @@ Reference
 pyoverload.__main__
 -------------------
 
-.. automodule:: pyoverload.__main__
+.. automodule:: overloadlib.__main__
    :members:
