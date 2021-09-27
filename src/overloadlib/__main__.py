@@ -1,3 +1,4 @@
+# type: ignore[attr-defined]
 """Command-line interface."""
 import click
 

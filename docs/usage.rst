@@ -1,6 +1,6 @@
 Usage
 =====
 
-.. click:: pyoverload.__main__:main
-   :prog: pyoverload
+.. click:: overloadlib.__main__:main
+   :prog: overloadlib
    :nested: full
