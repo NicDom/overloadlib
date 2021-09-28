@@ -34,8 +34,8 @@ def as_valid_key(dictionary: Dict[Any, Any]) -> Tuple[Any, Any]:
     Returns:
         Tuple[tuple, tuple]: The tuple.
     """
-    keys = tuple([key for key in dictionary.keys()])
-    values = tuple([value for value in dictionary.values()])
+    keys = tuple(key for key in dictionary.keys())
+    values = tuple(value for value in dictionary.values())
     return (keys, values)
 
 

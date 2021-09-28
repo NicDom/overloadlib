@@ -256,8 +256,8 @@ def _as_ordered_key(
         >>> hints = {"a": 1, "b": 2}
         >>> assert _as_ordered_key(hints) == (('a', 'b'), (1, 2))
     """
-    keys = tuple([key for key in dictionary.keys()])
-    values = tuple([value for value in dictionary.values()])
+    keys = tuple(key for key in dictionary.keys())
+    values = tuple(value for value in dictionary.values())
     return (keys, values)
 
 
@@ -289,7 +289,7 @@ def _generate_key(
                 arg_dict[key] = type(value)
             type_hints = _as_ordered_key(arg_dict)
         else:
-            type_hints = tuple([type(args[i]) for i in range(len(args))])  # type: ignore # noqa: B950
+            type_hints = tuple(type(args[i]) for i in range(len(args)))  # type: ignore # noqa: B950
     result = NamespaceKey(
         module=func.__module__,
         qualname=func.__qualname__,
@@ -605,7 +605,7 @@ class Namespace(object):
                 None otherwise.
         """
         if not isinstance(func_key.type_hints, frozenset):
-            copy = tuple([key.unordered for key in self.function_map.keys()])
+            copy = tuple(key.unordered for key in self.function_map.keys())
             key_dict = dict(zip(copy, self.function_map.keys()))
             match = key_dict.get(func_key.unordered)
             return self.function_map.get(match)  # type: ignore
