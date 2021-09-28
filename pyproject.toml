@@ -5,7 +5,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "overloadlib"
-version = "0.1.1"
+version = "0.1.2"
 description = "overloadlib"
 authors = ["Niclas D. Gesing <nicdomgesing@gmail.com>"]
 license = "MIT"
@@ -34,7 +34,7 @@ Changelog = "https://github.com/NicDom/overloadlib/releases"
 
 [tool.poetry.dependencies]
 python = "^3.7.1"
-click = "^7.0"
+click = "^8.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.4"
@@ -43,19 +43,19 @@ safety = "^1.9.0"
 mypy = "^0.910"
 typeguard = "^2.9.1"
 xdoctest = {extras = ["colors"], version = "^0.15.0"}
-sphinx = "^3.2.1"
+sphinx = "^4.2.0"
 sphinx-autobuild = "^2021.3.14"
 pre-commit = "^2.14.0"
 flake8 = "^3.8.4"
 black = "^21.9b0"
 flake8-bandit = "^2.1.2"
-flake8-bugbear = "^20.1.4"
+flake8-bugbear = "^21.9.1"
 flake8-docstrings = "^1.5.0"
-flake8-rst-docstrings = "^0.0.14"
+flake8-rst-docstrings = "^0.2.3"
 pep8-naming = "^0.11.1"
 darglint = "^1.5.5"
 isort = {extras = ["colors"], version = "^5.9.3"}
-pre-commit-hooks = "^3.2.0"
+pre-commit-hooks = "^4.0.1"
 sphinx-rtd-theme = "^1.0.0"
 sphinx-click = "^3.0.1"
 Pygments = "^2.7.1"
