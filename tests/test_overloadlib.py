@@ -19,6 +19,7 @@ from overloadlib.overloadlib import NoFunctionFoundError
 from overloadlib.overloadlib import _generate_key
 from overloadlib.overloadlib import func_versions_info
 from overloadlib.overloadlib import overload
+from overloadlib.overloadlib import override
 
 
 def as_valid_key(dictionary: Dict[Any, Any]) -> Tuple[Any, Any]:
@@ -170,3 +171,25 @@ def test_namespacekey() -> None:
     assert some_func.key().unordered.unordered == some_func.key().unordered
     assert "def some_func(str_1: str, int_1: int):" in func_versions_info(some_func)
     assert str(some_func.key().unordered) == some_func.key().unordered._str_unordered()
+
+
+def test_override() -> None:
+    """Overrides functions."""
+
+    def func_str(var: str) -> str:
+        return "I am a string"
+
+    def func_int(var: int) -> str:
+        return "I am an integer"
+
+    def func_both(var_1: int, var_2: str) -> str:
+        return var_2 * var_1
+
+    @override(funcs=[func_str, func_int, func_both])
+    def func() -> str:
+        return "No parameters."
+
+    assert func() == "No parameters"
+    assert func("a") == func_str("a") == "I am a string"
+    assert func(1) == func_int(1) == "I am an integer"
+    assert func(1, "a") == func_both(1, "a") == "a"
