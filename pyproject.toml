@@ -1,12 +1,7 @@
-# Poetry pyproject.toml: https://python-poetry.org/docs/pyproject/
-[build-system]
-requires = ["poetry_core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
-
 [tool.poetry]
 name = "overloadlib"
 version = "0.1.2"
-description = "overloadlib"
+description = "A python package to implement overloading of functions in python."
 authors = ["Niclas D. Gesing <nicdomgesing@gmail.com>"]
 license = "MIT"
 readme = "README.rst"
@@ -15,10 +10,11 @@ repository = "https://github.com/NicDom/overloadlib"
 documentation = "https://overloadlib.readthedocs.io"
 
 # Keywords description https://python-poetry.org/docs/pyproject/#keywords
-keywords = ["python", "overload", "dispatch"]  #! Update me
+keywords = ["python"]  #! Update me
 
 # Pypi classifiers: https://pypi.org/classifiers/
-classifiers = [
+classifiers = [  #! Update me
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
     "Topic :: Software Development :: Libraries :: Python Modules",
@@ -34,35 +30,39 @@ Changelog = "https://github.com/NicDom/overloadlib/releases"
 
 [tool.poetry.dependencies]
 python = "^3.7.1"
-click = "^8.0"
+importlib_metadata = {version = "^4.5.0", python = "<3.8"}
+# typer = {extras = ["all"], version = "^0.4.0"}
+# rich = "^10.7.0"
+
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.4"
 coverage = {extras = ["toml"], version = "^6.0"}
-safety = "^1.9.0"
+safety = "^1.10.3"
 mypy = "^0.910"
-typeguard = "^2.9.1"
-xdoctest = {extras = ["colors"], version = "^0.15.0"}
+typeguard = "^2.12.1"
+xdoctest = {extras = ["colors"], version = "^0.15.5"}
 sphinx = "^4.2.0"
 sphinx-autobuild = "^2021.3.14"
 pre-commit = "^2.14.0"
-flake8 = "^3.8.4"
+flake8 = "^3.9.2"
 black = "^21.9b0"
 flake8-bandit = "^2.1.2"
-flake8-bugbear = "^21.9.2"
-flake8-docstrings = "^1.5.0"
+flake8-bugbear = "^21.9.1"
+flake8-docstrings = "^1.6.0"
 flake8-rst-docstrings = "^0.2.3"
-pep8-naming = "^0.12.1"
-darglint = "^1.5.5"
+pep8-naming = "^0.12.0"
+darglint = "^1.8.0"
 isort = {extras = ["colors"], version = "^5.9.3"}
+pyupgrade = "^2.29.0"
 pre-commit-hooks = "^4.0.1"
 sphinx-rtd-theme = "^1.0.0"
 sphinx-click = "^3.0.1"
-Pygments = "^2.7.1"
-pydantic = "^1.8.2"
+Pygments = "^2.9.0"
 
 [tool.poetry.scripts]
-overloadlib = "overloadlib.__main__:main"
+# Entry points for the package https://python-poetry.org/docs/pyproject/#scripts
+"overloadlib" = "overloadlib.__main__:app"
 
 [tool.coverage.paths]
 source = ["src", "*/site-packages"]
@@ -70,6 +70,7 @@ source = ["src", "*/site-packages"]
 [tool.coverage.run]
 branch = true
 source = ["overloadlib"]
+
 [tool.coverage.report]
 show_missing = true
 fail_under = 100
@@ -104,8 +105,22 @@ line_length = 88
 known_typing = ["typing", "types", "typing_extensions", "mypy", "mypy_extensions"]
 sections = ["FUTURE", "TYPING", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
 include_trailing_comma = true
+force_single_line =true
 profile = "black"
-multi_line_output = 3
-force_single_line = true
+multi_line_output = 7
 indent = 4
 color_output = true
+
+# Poetry pyproject.toml: https://python-poetry.org/docs/pyproject/
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+
+[tool.mypy]
+# https://mypy.readthedocs.io/en/latest/config_file.html#using-a-pyproject-toml-file
+strict = true
+pretty = true
+show_column_numbers = true
+show_error_codes = true
+show_error_context = true

@@ -19,7 +19,7 @@ except ImportError:
     raise SystemExit(dedent(message)) from None
 
 package = "overloadlib"
-python_versions = ["3.9", "3.8", "3.7"]
+python_versions = ["3.7", "3.8", "3.9"]
 nox.needs_version = ">= 2021.6.6"
 nox.options.sessions = (
     "pre-commit",
@@ -42,8 +42,8 @@ def activate_virtualenv_in_precommit_hooks(session: Session) -> None:
     Args:
         session: The Session object.
     """
-    # if session.bin is None:
-    #     return
+    if session.bin is None:
+        return
 
     virtualenv = session.env.get("VIRTUAL_ENV")
     if virtualenv is None:
@@ -99,6 +99,7 @@ def precommit(session: Session) -> None:
         "pre-commit",
         "pre-commit-hooks",
         "isort",
+        "pyupgrade",
     )
     session.run("pre-commit", *args)
     if args and args[0] == "install":
@@ -133,19 +134,17 @@ def tests(session: Session) -> None:
         session.run("coverage", "run", "--parallel", "-m", "pytest", *session.posargs)
     finally:
         if session.interactive:
-            session.notify("coverage")
+            session.notify("coverage", posargs=[])
 
 
 @session
 def coverage(session: Session) -> None:
     """Produce the coverage report."""
-    # Do not use session.posargs unless this is the only session.
-    has_args = session.posargs and len(session._runner.manifest) == 1
-    args = session.posargs if has_args else ["report"]
+    args = session.posargs or ["report"]
 
     session.install("coverage[toml]")
 
-    if not has_args and any(Path().glob(".coverage.*")):
+    if not session.posargs and any(Path().glob(".coverage.*")):
         session.run("coverage", "combine")
 
     session.run("coverage", *args)

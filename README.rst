@@ -1,7 +1,7 @@
-overloadlib
+Overloadlib
 ===========
 
-|PyPI| |Python Version| |License|
+|PyPI| |Status| |Python Version| |License|
 
 |Read the Docs| |Tests| |Codecov|
 
@@ -10,6 +10,9 @@ overloadlib
 .. |PyPI| image:: https://img.shields.io/pypi/v/overloadlib.svg
    :target: https://pypi.org/project/overloadlib/
    :alt: PyPI
+.. |Status| image:: https://img.shields.io/pypi/status/overloadlib.svg
+   :target: https://pypi.org/project/overloadlib/
+   :alt: Status
 .. |Python Version| image:: https://img.shields.io/pypi/pyversions/overloadlib
    :target: https://pypi.org/project/overloadlib
    :alt: Python Version
@@ -22,7 +25,7 @@ overloadlib
 .. |Tests| image:: https://github.com/NicDom/overloadlib/workflows/Tests/badge.svg
    :target: https://github.com/NicDom/overloadlib/actions?workflow=Tests
    :alt: Tests
-.. |Codecov| image:: https://codecov.io/gh/NicDom/overloadlib/branch/master/graph/badge.svg
+.. |Codecov| image:: https://codecov.io/gh/NicDom/overloadlib/branch/main/graph/badge.svg
    :target: https://codecov.io/gh/NicDom/overloadlib
    :alt: Codecov
 .. |pre-commit| image:: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white
@@ -48,7 +51,7 @@ Requirements
 Installation
 ------------
 
-You can install *overloadlib* via pip_ from PyPI_:
+You can install *Overloadlib* via pip_ from PyPI_:
 
 .. code:: console
 
@@ -71,8 +74,8 @@ To learn more, see the `Contributor Guide`_.
 License
 -------
 
-Distributed under the terms of the MIT_ license,
-*overloadlib* is free and open source software.
+Distributed under the terms of the `MIT license`_,
+*Overloadlib* is free and open source software.
 
 
 Issues
@@ -87,10 +90,9 @@ Credits
 
 This project was generated from `@cjolowicz`_'s `Hypermodern Python Cookiecutter`_ template.
 
-
 .. _@cjolowicz: https://github.com/cjolowicz
 .. _Cookiecutter: https://github.com/audreyr/cookiecutter
-.. _MIT: http://opensource.org/licenses/MIT
+.. _MIT license: https://opensource.org/licenses/MIT
 .. _PyPI: https://pypi.org/
 .. _Hypermodern Python Cookiecutter: https://github.com/cjolowicz/cookiecutter-hypermodern-python
 .. _file an issue: https://github.com/NicDom/overloadlib/issues

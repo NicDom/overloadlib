@@ -1,1 +1,1 @@
-"""Test suite for the pyoverload package."""
+"""Test suite for the overloadlib package."""

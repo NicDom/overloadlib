@@ -1,13 +1,13 @@
+"""__main__ of overloadlib."""
 # type: ignore[attr-defined]
-"""Command-line interface."""
-import click
+from overloadlib import version
 
 
-@click.command()
-@click.version_option()
-def main() -> None:
-    """overloadlib."""
+def version_callback() -> str:
+    """Print the version of the package."""
+    print(f"version: {version}")
+    return version
 
 
 if __name__ == "__main__":
-    main(prog_name="overloadlib")  # pragma: no cover
+    version_callback()

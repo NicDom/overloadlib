@@ -1,7 +1,7 @@
 """Sphinx configuration."""
 from datetime import datetime
 
-project = "overloadlib"
+project = "Overloadlib"
 author = "Niclas D. Gesing"
 copyright = f"{datetime.now().year}, {author}"
 extensions = [

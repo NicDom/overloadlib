@@ -1,10 +1,17 @@
 {
-  "_template": "cookiecutter-hypermodern-python",
+  "_all_python_minor_version": [6, 7, 8, 9],
+  "_template": "template",
   "author": "Niclas D. Gesing",
+  "create_example_template": "cli",
+  "development_status": "Development Status :: 5 - Production/Stable",
   "email": "nicdomgesing@gmail.com",
-  "friendly_name": "overloadlib",
+  "friendly_name": "Overloadlib",
   "github_user": "NicDom",
+  "license": "MIT",
+  "line_length": "88",
+  "minimal_python_version": "3.7",
   "package_name": "overloadlib",
+  "project_description": "A python package to implement overloading of functions in python.",
   "project_name": "overloadlib",
-  "version": "0.0.0"
+  "version": "0.1.2"
 }
