@@ -124,6 +124,59 @@ You can install *Overloadlib* via pip_ from PyPI_:
 
    $ pip install overloadlib
 
+or install with  ``Poetry``
+
+.. code:: console
+   $ poetry add overloadlib
+
+
+Then you can run
+
+.. code:: console
+   $ overloadlib --help
+
+
+or with  ``Poetry``:
+
+.. code:: console
+   $ poetry run overloadlib --help
+
+
+<details>
+<summary>Installing Poetry</summary>
+<p>
+
+To download and install Poetry run (with curl):
+
+.. code:: console
+   $ curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
+
+
+or on windows (without curl):
+
+.. code:: console
+   $ (Invoke-WebRequest -Uri https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py -UseBasicParsing).Content | python -
+
+
+</p>
+</details>
+
+Uninstall
+~~~~~~~~~
+
+If you wan to uninstall the package, simply run
+
+.. code:: console
+   $ pip uninstall overloadlib
+
+
+or with  ``Poetry``:
+
+.. code:: console
+   $ poetry remove overloadlib
+
+
+
 
 Usage
 -----
