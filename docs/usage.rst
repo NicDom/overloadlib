@@ -1,26 +1,11 @@
 Usage
 =====
 
-.. click:: overloadlib.__main__:main
-   :prog: overloadlib
-   :nested: full
-
 .. raw:: html
 
    <details>
-
-.. raw:: html
-
-   <summary>
-
-Import
-
-.. raw:: html
-
+   <summary>Import
    </summary>
-
-.. raw:: html
-
    <p>
 
 Imports need to come form ``overloadlib.overloadlib``. Importing via
@@ -29,16 +14,15 @@ Imports need to come form ``overloadlib.overloadlib``. Importing via
 
    from overloadlib.overloadlib import *
 
-imports ``overload`` and ``override`` decorators, as well ass
+imports ``overload`` and ``override`` decorators, as well as
 ``func_versions_info``.
 
 .. raw:: html
 
    </p>
-
-.. raw:: html
-
    </details>
+
+|
 
 Overloading of functions can be done via the ``@overload`` or
 ``@override`` decorator.
@@ -167,4 +151,6 @@ If you want to get all versions of a certain function ``<myfunc>``, use
 Common Mistakes and Limitations
 -------------------------------
 
--  Overloading using overload raises problems with \`mypy
+-  Overloading using overload raises problems with mypy_. This can be circumvented using ``@override`` instead of ``@overload``.
+
+.. _mypy : http://mypy-lang.org/
