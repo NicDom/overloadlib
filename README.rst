@@ -39,13 +39,80 @@ Overloadlib
 Features
 --------
 
-* TODO
+* Introduces ``@overload`` and ``@override`` decorators, allowing one to overload and override functions. Functions are then called according to their argument types:
+
+.. code-block:: python
+
+    @overload
+    def func(var: str):
+        return var
+
+    @overload
+    def func(var: int):
+        return str(var * 5)
+
+    func("a") == "a"  # True
+    "a: " + func(1)  # "a: 5"
+
+* Raises human readable errors, if no callable was determined with the given arguments:
+
+.. code-block:: python
+
+    @overload
+    def some_func(str_1: str, int_1: int):
+        return str_1 + str(int_1)
+
+    @overload
+    def some_func(str_1: str):
+        return str_1
+
+    >>> some_func(str_1=2)
+    PyOverloadError:
+    Error when calling:
+    (__main__.some_func):
+            def some_func(str_1: int):
+                    ...:
+            'str_1' needs to be of type (<class 'str'>,) (is type <class 'int'>)
+
+or
+
+.. code-block:: python
+
+    >>> some_func(10)
+    __main__.NoFunctionFoundError: No matching function found.
+    Following definitions of 'some_func' were found:
+    (__main__.some_func):
+            def some_func(str_1: str, int_1: int):
+                    ...
+    (__main__.some_func):
+            def some_func(str_1: str):
+                    ...
+    The following call was made:
+    (__main__.some_func):
+            def some_func(int_1: int):
+                    ...
+
+* Any type of variables is allowed: Build-in ones like ``str, int, List`` but also own ones, like classes etc.
+* ``@overload`` uses ``get_type_hints`` to identify the right function call via type-checking. Hence, it may also be used as a type-checker for functions.
+* Forgot, which overloads of a specific function have been implemented? No worries, you can print them with their typing information using `print(func_versions_info(<my_func>))`, e.g.
+.. code-block:: python
+
+    >>> print(func_versions_info(some_func))
+
+    Following overloads of 'some_func' exist:
+    (__main__.some_func):
+            def some_func(str_1: str, int_1: int):
+                    ...
+    (__main__.some_func):
+            def some_func(str_1: str):
+                    ...
+
 
 
 Requirements
 ------------
 
-* TODO
+Requires Python 3.7+.
 
 
 Installation

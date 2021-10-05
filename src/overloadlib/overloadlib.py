@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from functools import partial
 from functools import wraps
 
-__all__ = ["Function", "Namespace", "overload"]
+__all__ = ["overload", "override", "func_versions_info"]
 
 
 ArgsType = Optional[List[Any]]
@@ -307,7 +307,7 @@ class PyOverloadError(TypeError):
     """The base class for exceptions."""
 
 
-class NoFunctionFoundError(PyOverloadError):
+class NoFunctionFoundError(NameError):
     """The error, if no matching overloaded function was found."""
 
     def __init__(
@@ -321,7 +321,7 @@ class NoFunctionFoundError(PyOverloadError):
             options = Namespace.get_instance().keys_matching_func_name(func_key)
             self.message += f"Following definitions of '{func_key.name}' were found:\n"
             self.message += "\n".join([key.__str__() for key in options])
-            self.message += f"\nThe following function was given:\n{func_key}"
+            self.message += f"\nThe following call was made:\n{func_key}"
         super().__init__(self.message)
 
     # def __str__(self) -> str:
@@ -545,7 +545,7 @@ class Namespace(object):
                 None otherwise.
 
         Raises:
-            TypeError: If the arguments have the correct keywords,
+            PyOverloadError: If the arguments have the correct keywords,
                 but wrong variable types.
         """
         func = Function(fn)
@@ -559,18 +559,22 @@ class Namespace(object):
         # func_key is not in namespace and argument types fo not fit to any namespace
         # key -> raise(ValueError)
         if result is None and similar_keys != []:
-            excinfo = "".join(self.difference(similar_keys))
-            raise (TypeError(excinfo))
+            excinfo = f"\nError when calling:\n{func_key}:"
+            excinfo += "".join(self.difference(similar_keys, func_key))
+            raise (PyOverloadError(excinfo))
 
         return self.match_by_kwargs(func_key=func_key) or self.match_only_by_type(
             func_key=func_key
         )
 
-    def difference(self, val_keys: List[NamespaceKey]) -> List[str]:
+    def difference(
+        self, val_keys: List[NamespaceKey], my_key: NamespaceKey
+    ) -> List[str]:
         """Returns the typing information to `similar_keys` (c.f. `get`).
 
         Args:
             val_keys (List[NamespaceKey]): The `similar_keys`.
+            my_key (NamespaceKey): The compared key.
 
         Returns:
             List[str]: List containing the typing information.
@@ -579,20 +583,22 @@ class Namespace(object):
             TypeError: if one of the NamespaceKeys in `val_keys` is
                 unordered.
         """
+        my_key_dict = dict(zip(my_key.type_hints[0], my_key.type_hints[-1]))
         results = []
         for val_key in val_keys:
             if not isinstance(val_key.type_hints, frozenset):
                 keys = val_key.type_hints[0]
                 values = val_key.type_hints[-1]
                 result = [
-                    f"'{key}' needs to be of type {value}\n"
+                    f"\n\t'{key}' needs to be of type {values} (is type"
+                    f" {my_key_dict[key]})"
                     for key, value in zip(keys, values)
                 ]
                 results += result
             else:
                 raise (
                     TypeError(
-                        f"{val_key!r} is an unordered key, but keys need to ordered."
+                        f"{val_key!r} is an unordered key, but keys need to" " ordered."
                     )
                 )  # pragma: no cover
 

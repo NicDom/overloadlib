@@ -1,11 +1,12 @@
-# overloadlib
+# Overloadlib
 
 <div align="center">
 
 [![Build status](https://github.com/NicDom/overloadlib/workflows/build/badge.svg?branch=master&event=push)](https://github.com/NicDom/overloadlib/actions?query=workflow%3Abuild)
 [![Python Version](https://img.shields.io/pypi/pyversions/overloadlib.svg)](https://pypi.org/project/overloadlib/)
 [![Dependencies Status](https://img.shields.io/badge/dependencies-up%20to%20date-brightgreen.svg)](https://github.com/NicDom/overloadlib/pulls?utf8=%E2%9C%93&q=is%3Apr%20author%3Aapp%2Fdependabot)
-
+[![Codecov](https://codecov.io/gh/NicDom/overloadlib/branch/main/graph/badge.svg)](https://codecov.io/gh/NicDom/overloadlib)
+[![Read The Docs](https://img.shields.io/readthedocs/overloadlib/latest.svg?label=Read%20the%20Docs)](https://overloadlib.readthedocs.io/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Security: bandit](https://img.shields.io/badge/security-bandit-green.svg)](https://github.com/PyCQA/bandit)
 [![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/NicDom/overloadlib/blob/master/.pre-commit-config.yaml)
@@ -18,11 +19,78 @@ A python package to implement overloading of functions in python.
 
 ## Features
 
-**TODO**
+- Introduces `@overload` and `@override` decorators, allowing one to overload and override functions. Functions are then called according to their argument types:
+
+```python
+@overload
+def func(var: str):
+    return var
+
+@overload
+def func(var: int):
+    return str(var * 5)
+
+func("a") == "a"  # True
+"a: " + func(1)  # "a: 5"
+```
+
+- Raises human readable errors, if no callable was determined with the given arguments:
+
+```python
+@overload
+def some_func(str_1: str, int_1: int):
+    return str_1 + str(int_1)
+
+@overload
+def some_func(str_1: str):
+    return str_1
+
+>>> some_func(str_1=2)
+PyOverloadError:
+Error when calling:
+(__main__.some_func):
+         def some_func(str_1: int):
+                ...:
+        'str_1' needs to be of type (<class 'str'>,) (is type <class 'int'>)
+```
+
+or
+
+```python
+>>> some_func(10)
+__main__.NoFunctionFoundError: No matching function found.
+Following definitions of 'some_func' were found:
+(__main__.some_func):
+         def some_func(str_1: str, int_1: int):
+                ...
+(__main__.some_func):
+         def some_func(str_1: str):
+                ...
+The following call was made:
+(__main__.some_func):
+         def some_func(int_1: int):
+                ...
+```
+
+- Any type of variables is allowed: Build-in ones like `str, int, List` but also own ones, like classes etc.
+- `@overload` uses `get_type_hints` to identify the right function call via type-checking. Hence, it may also be used as a type-checker for functions.
+- Forgot, which overloads of a specific function have been implemented? No worries, you can print them with their typing information using `print(func_versions_info(<my_func>))`, e.g.
+
+```python
+>>> print(func_versions_info(some_func))
+
+Following overloads of 'some_func' exist:
+(__main__.some_func):
+         def some_func(str_1: str, int_1: int):
+                ...
+(__main__.some_func):
+         def some_func(str_1: str):
+                ...
+```
 
 ## Requirements
 
-**TODO**
+Requires Python 3.7+.
 
 ## Installation
 
@@ -44,10 +112,9 @@ overloadlib --help
 
 or with `Poetry`:
 
-````bash
+```bash
 poetry run overloadlib --help
-
-
+```
 
 <details>
 <summary>Installing Poetry</summary>
@@ -57,7 +124,7 @@ To download and install Poetry run (with curl):
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python -
-````
+```
 
 or on windows (without curl):
 
@@ -84,7 +151,138 @@ poetry remove overloadlib
 
 ## Usage
 
-**TODO**
+<details>
+<summary>Import</summary>
+<p>
+
+Imports need to come form `overloadlib.overloadlib`. Importing via
+
+```python
+from overloadlib.overloadlib import *
+```
+
+imports `overload` and `override` decorators, as well ass `func_versions_info`.
+
+</p>
+</details>
+
+Overloading of functions can be done via the `@overload` or `@override` decorator.
+
+### @overload
+
+Overloading of functions:
+
+```python
+@overload
+def func(var: str):
+    return var
+
+@overload
+def func(var: int):
+    return str(var * 5)
+
+func("a") == "a"  # True
+"a: " + func(1)  # "a: 5"
+```
+
+Overloading of methods (or mixtures of both) are also possible using the same decorator:
+
+```python
+@dataclass
+class Hello:
+    text: str = "Hello"
+
+class Some:
+    def __init__(self) -> None:
+        pass
+
+    @overload
+    def func(self, str_1: str, int_1: int) -> str:
+        return str_1 + str(int_1)
+
+    @overload
+    def func(self, str_1: str) -> str:
+        return str_1
+
+    @overload
+    def func(self, obj: Hello) -> str:
+        return obj.text
+
+@overload
+def func(str_1: str) -> str:
+    return "yummy " + str_1
+```
+
+Note that own classes, can be given as types to the function. Furthermore, methods and functions ma have the same name. Possible calls could now look like this:
+
+```python
+# Giving only *args
+some.func("Number: ", 1)  # "Number: 1"
+
+# Giving **kwargs
+some.func(str_1="Number: ", int_1=1)  # "Number: 1"
+
+# An object as argument
+some.func(Hello())  # "Hello"
+
+# Calling the function not the method
+func("yummy")  # "yummy cheese"
+```
+
+### @override
+
+You may also 'overload' functions using the `@override` decorator. This one overrides an list of callables or `Function` (function wrapper class of `overloadlib.py`.) via a given new 'parent' function.
+
+```python
+def func_str(var: str) -> str:
+    return "I am a string"
+
+def func_int(var: int) -> str:
+    return "I am an integer"
+
+@overload
+def func_both(var_1: int, var_2: str) -> str:
+    return var_2 * var_1
+
+@override(funcs=[func_str, func_int, func_both])  # callables and `Function` are given
+def new_func(fl: float) -> str:
+    return "Float parameter"
+```
+
+Possible calls could now look like this:
+
+```python
+new_func(1.0) == "Float parameter"  # True
+new_func("a") == func_str("a") == "I am a string"  # True
+new_func(1) == func_int(1) == "I am an integer"  # True
+new_func(1, "a") == func_both(1, "a") == "a"  # True
+```
+
+### func_versions_info
+
+If you want to get all versions of a certain function `<myfunc>`, use `func_versions_info(<myfunc>)`, e.g.
+
+```python
+>>> print(func_versions_info(new_func))
+
+Following overloads of 'new_func' exist:
+(__main__.new_func):
+         def new_func(var: str):
+                ...
+(__main__.new_func):
+         def new_func(var: int):
+                ...
+(__main__.new_func):
+         def new_func(var_1: int, var_2: str):
+                ...
+(__main__.new_func):
+         def new_func(fl: float):
+                ...
+```
+
+## Common Mistakes and Limitations
+
+- Overloading using overload raises problems with `mypy`. This can be circumvented using `@override` instead of `@overload`.
 
 ## Contributing
 
