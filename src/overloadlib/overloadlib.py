@@ -701,14 +701,36 @@ def overload(fn: Callable[..., Any]) -> Function:
     return Namespace.get_instance().register(fn)
 
 
-def override(funcs: List[Callable[..., Any]]) -> Callable[..., Function]:
-    """Overrides functions to one function.
+def override(
+    funcs: List[Union[Function, Callable[..., Any]]]
+) -> Callable[..., Function]:
+    """Overrides several callables into one single `Function`.
 
     Args:
-        funcs (List[Callable[..., Any]]): List of functions to override.
+        funcs (List[Union[Function, Callable[..., Any]]]): List of
+            `Function` and/or callables we want to override.
 
     Returns:
-        Callable[..., Function]: The new 'parent' callable.
+        Callable[..., Function]: The new `parent` callable.
+
+    Example:
+        >>> def func_str(var: str) -> str:
+        >>>     return "I am a string"
+
+        >>> def func_int(var: int) -> str:
+        >>>     return "I am an integer"
+
+        >>> @overload
+        >>> def func_both(var_1: int, var_2: str) -> str:
+        >>>     return var_2 * var_1
+
+        >>> @override(funcs=[func_str, func_int, func_both])
+        >>> def new_func(fl: float) -> str:
+        >>>     return "Float parameter"
+        >>> assert new_func(1.0) == "Float parameter"
+        >>> assert new_func("a") == func_str("a") == "I am a string"
+        >>> assert new_func(1) == func_int(1) == "I am an integer"
+        >>> assert new_func(1, "a") == func_both(1, "a") == "a"
     """
 
     def wrapper(new_func: Callable[..., Any]) -> Function:
