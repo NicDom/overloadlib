@@ -16,7 +16,7 @@ def get_version() -> str:
         str: The version of the package.
     """
     try:
-        return importlib_metadata.version(__name__)
+        return str(importlib_metadata.version(__name__))
     except importlib_metadata.PackageNotFoundError:  # pragma: no cover
         return "unknown"
 

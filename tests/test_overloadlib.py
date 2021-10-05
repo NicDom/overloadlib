@@ -136,7 +136,7 @@ def test_overload_on_class_method() -> None:
     assert some_func(**kwargs) == "Number: 1"
     assert some_func(*args) == "Number: 1"
     assert some_func("cheese") == "cheese"
-    assert func("cheese") == "yummy cheese"  # type: ignore
+    assert func("cheese") == "yummy cheese"
     assert some_func(str_1="cheese") == "cheese"
     with pytest.raises(TypeError) as excinfo:
         some_func(str_1=2)
@@ -146,7 +146,7 @@ def test_overload_on_class_method() -> None:
     assert "'int_1' needs to be of type" in str(excinfo)
     with pytest.raises(TypeError) as excinfo:
         some_func(obj=2)
-    assert "'obj' needs to be of type" in str(excinfo)
+    assert "is type" in str(excinfo) and f"{int}" in str(excinfo)
     with pytest.raises(NoFunctionFoundError) as excinfo:
         some_func(int_1=1)
     assert "def func(int_1: int):" in str(excinfo)

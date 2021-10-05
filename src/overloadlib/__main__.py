@@ -1,9 +1,10 @@
 """__main__ of overloadlib."""
-# type: ignore[attr-defined]
-from overloadlib import version
+from typing import Any
+
+from overloadlib import version  # type: ignore[attr-defined]
 
 
-def version_callback() -> str:
+def version_callback() -> Any:
     """Print the version of the package."""
     print(f"version: {version}")
     return version

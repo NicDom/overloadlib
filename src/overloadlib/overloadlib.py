@@ -20,7 +20,7 @@ from functools import wraps
 __all__ = ["overload", "override", "func_versions_info"]
 
 
-ArgsType = Optional[List[Any]]
+ArgsType = Optional[Union[Any, List[Any]]]
 KwargsType = Optional[Dict[str, Any]]
 NspKeyTypeHints = Union[
     Tuple[Tuple[Any, ...], Tuple[Any, ...]], Tuple[Any, ...], FrozenSet[Any]
@@ -307,7 +307,7 @@ class PyOverloadError(TypeError):
     """The base class for exceptions."""
 
 
-class NoFunctionFoundError(NameError):
+class NoFunctionFoundError(PyOverloadError):
     """The error, if no matching overloaded function was found."""
 
     def __init__(
@@ -499,7 +499,7 @@ class Namespace(object):
         """
         if isinstance(child_fn, Function):
             type_hints = child_fn.key().type_hints
-        elif isinstance(child_fn, Callable):
+        elif isinstance(child_fn, Callable):  # type: ignore[arg-type]
             hints = {
                 key: value
                 for key, value in get_type_hints(child_fn).items()
@@ -583,7 +583,8 @@ class Namespace(object):
             TypeError: if one of the NamespaceKeys in `val_keys` is
                 unordered.
         """
-        my_key_dict = dict(zip(my_key.type_hints[0], my_key.type_hints[-1]))
+        if not isinstance(my_key.type_hints, frozenset):  # pragma: no cover
+            my_key_dict = dict(zip(my_key.type_hints[0], my_key.type_hints[-1]))
         results = []
         for val_key in val_keys:
             if not isinstance(val_key.type_hints, frozenset):
