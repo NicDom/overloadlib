@@ -9,5 +9,5 @@ def version_callback() -> str:
     return version
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     version_callback()

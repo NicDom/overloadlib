@@ -185,7 +185,6 @@ class NamespaceKey:
                 "(module.Some.func):
                      def func(var: int, var_2: str):
                          ..."
-
         """
         if isinstance(self.type_hints, frozenset):
             return self._str_unordered()
@@ -481,6 +480,47 @@ class Namespace(object):
         self.function_map[func.key()] = fn
         return func
 
+    def add(
+        self,
+        parent_fn: Callable[..., Any],
+        child_fn: Union[Function, Callable[..., Any]],
+    ) -> None:
+        """Registers `parent_fn` with __call__ of `child_fn`.
+
+        Used to combine several functions to one call.
+
+        Args:
+            parent_fn (Callable[..., Any]): The parent the child is 'added'.
+            child_fn (Union[Function, Callable[..., Any]]): The function,
+                whose call we add to `parent_fn`.
+
+        Raises:
+            ValueError: If `child_fn` is no `Function` or `Callable`.
+        """
+        if isinstance(child_fn, Function):
+            type_hints = child_fn.key().type_hints
+        elif isinstance(child_fn, Callable):
+            hints = {
+                key: value
+                for key, value in get_type_hints(child_fn).items()
+                if key != "return"
+            }
+            type_hints = _as_ordered_key(hints)
+        else:  # pragma: no cover
+            raise (
+                ValueError(
+                    f"The child 'child_fn' needs to be a callable or a of type {Function}, but is of type {type(child_fn)}."  # noqa: B950
+                )
+            )
+
+        key = NamespaceKey(
+            module=parent_fn.__module__,
+            qualname=parent_fn.__qualname__,
+            name=parent_fn.__name__,
+            type_hints=type_hints,
+        )
+        self.function_map[key] = child_fn
+
     def get(
         self, fn: Callable[..., Any], *args: Any, **kwargs: Any
     ) -> Optional[Callable[..., Any]]:
@@ -659,6 +699,24 @@ def overload(fn: Callable[..., Any]) -> Function:
         "a: 5"
     """
     return Namespace.get_instance().register(fn)
+
+
+def override(funcs: List[Callable[..., Any]]) -> Callable[..., Function]:
+    """Overrides functions to one function.
+
+    Args:
+        funcs (List[Callable[..., Any]]): List of functions to override.
+
+    Returns:
+        Callable[..., Function]: The new 'parent' callable.
+    """
+
+    def wrapper(new_func: Callable[..., Any]) -> Function:
+        for func in funcs:
+            Namespace.get_instance().add(new_func, func)
+        return overload(new_func)
+
+    return wrapper
 
 
 ############################################################################
