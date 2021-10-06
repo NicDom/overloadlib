@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "overloadlib"
-version = "0.2.2"
+version = "0.2.3"
 description = "A python package to implement overloading of functions in python."
 authors = ["Niclas D. Gesing <nicdomgesing@gmail.com>"]
 license = "MIT"
