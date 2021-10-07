@@ -81,8 +81,10 @@ class NamespaceKeyBase:
         Returns:
             str: The string representation for the type_hints of the key.
         """
-        return f"\n\t Received call as {self.name}(" + ", ".join(
-            [f"{hint.__name__}" for hint in type_hints]
+        return (
+            f"\n\t{self.name}("
+            + ", ".join([f"{hint.__name__}" for hint in type_hints])
+            + ")"
         )  # pragma: no cover
 
     @property
@@ -242,7 +244,7 @@ class NamespaceKey(NamespaceKeyBase):
         try:
             type_hints = dict(zip(self.type_hints[0], self.type_hints[1]))
             msg += self._str_for_type_hint_dict(type_hints)
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, IndexError):
             type_hints = self.type_hints  # type: ignore
             msg += self._str_for_type_hint_tuple(type_hints)  # type: ignore
         return msg
