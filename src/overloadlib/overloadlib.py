@@ -751,6 +751,11 @@ class Namespace(object):
         return [key for key in opt_keys if func_key.type_hints[0] == key.type_hints[0]]
 
 
+##############################################
+#  DECORATORS FOR OVERLOADING OF FUNCTIONS
+##############################################
+
+
 def overload(fn: Callable[..., Any]) -> Function:
     """Decorator for overloading a function.
 
