@@ -249,3 +249,33 @@ def test_add() -> None:
     assert some_func("cheese") == "cheese"
     assert some_func(Some()) == "Hello"
     check_exceptions(some_func)
+
+
+def test_all_mixed() -> None:
+    """Overloading methods work when mixed."""
+
+    @dataclass
+    class Some:
+        text: str = "Hello"
+
+    @overload
+    def func(str_1: str) -> str:
+        return str_1
+
+    @func.add
+    def _(obj: Some) -> str:
+        return obj.text
+
+    @overload
+    def func() -> str:
+        return "Functions don't need to have arguments."
+
+    @override(funcs=[func])
+    def new(str_1: str, int_1: int) -> str:
+        return str_1 * int_1
+
+    assert func("a") == "a" == new("a")
+    assert func(Some()) == "Hello" == new(Some())
+    assert func() == "Functions don't need to have arguments." == new()
+    assert new("house", 2) == "househouse"
+    check_exceptions(new)
