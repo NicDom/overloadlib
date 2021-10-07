@@ -447,6 +447,15 @@ class Function(partial):  # type: ignore
         self.owner = owner or self
         return self
 
+    def add(self, fn: Callable[..., Any]) -> None:
+        """Adds the call of `fn` to calls of `self`.
+
+        Args:
+            fn (Callable[..., Any]): A callable, whose call we want to add to
+                calls of `self`.
+        """
+        Namespace.get_instance().add(self.func, fn)
+
     def __call__(self, *args: ArgsType, **kwargs: KwargsType) -> Any:
         """Overriding the __call__ function which makes the instance callable.
 
