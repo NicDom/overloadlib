@@ -591,28 +591,30 @@ class Namespace(object):
             ValueError: If `child_fn` is no `Function` or `Callable`.
         """
         if isinstance(child_fn, Function):
-            type_hints = child_fn.key().type_hints
+            type_hints_list = [
+                func_key.type_hints for func_key in get_overloads(child_fn)
+            ]
         elif isinstance(child_fn, Callable):  # type: ignore[arg-type]
             hints = {
                 key: value
                 for key, value in get_type_hints(child_fn).items()
                 if key != "return"
             }
-            type_hints = _as_ordered_key(hints)
+            type_hints_list = [_as_ordered_key(hints)]
         else:  # pragma: no cover
             raise (
                 ValueError(
                     f"The child 'child_fn' needs to be a callable or a of type {Function}, but is of type {type(child_fn)}."  # noqa: B950
                 )
             )
-
-        key = NamespaceKey(
-            module=parent_fn.__module__,
-            qualname=parent_fn.__qualname__,
-            name=parent_fn.__name__,
-            type_hints=type_hints,
-        )
-        self.function_map[key] = child_fn
+        for type_hints in type_hints_list:
+            key = NamespaceKey(
+                module=parent_fn.__module__,
+                qualname=parent_fn.__qualname__,
+                name=parent_fn.__name__,
+                type_hints=type_hints,
+            )
+            self.function_map[key] = child_fn
 
     def get(
         self, fn: Callable[..., Any], *args: Any, **kwargs: Any
