@@ -231,6 +231,10 @@ def test_add() -> None:
     def name_does_not_matter(obj: Some) -> str:
         return obj.text
 
+    @some_func.add
+    def _(str_1: str, str_2: str) -> str:
+        return str_1 + str_2
+
     assert some_func("This is a number: ", 10) == "This is a number: 10"
     assert some_func("cheese") == "cheese"
     assert some_func(Some()) == "Hello"
