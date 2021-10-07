@@ -20,6 +20,10 @@ from functools import wraps
 __all__ = ["overload", "override", "func_versions_info"]
 
 
+# Used when `Function`arguments are empty
+EMPTY_DICT = {"None": None}
+
+
 ArgsType = Optional[Union[Any, List[Any]]]
 KwargsType = Optional[Dict[str, Any]]
 NspKeyTypeHints = Union[Tuple[Tuple[Any, ...], Tuple[Any, ...]], Tuple[Any, ...]]
@@ -60,6 +64,8 @@ class NamespaceKeyBase:
         Returns:
             str: The string representation for the type_hints of the key.
         """
+        if type_hints == EMPTY_DICT:
+            return f"\n\t {self.name}():\n\t\t..."
         return (
             f"\n\t def {self.name}("
             + ", ".join(
@@ -215,6 +221,13 @@ class NamespaceKey(NamespaceKeyBase):
             UnorderedNamespaceKey: The NamespaceKey `self`, but with the type hints
                 stored as a frozen set.
         """
+        # if len(self.type_hints) > 0:
+        #     if not isinstance(self.type_hints[0], tuple):  # pragma: no cover
+        #         type_hints = frozenset(self.type_hints)
+        #     else:
+        #         type_hints = frozenset(
+        #             dict(zip(self.type_hints[0], self.type_hints[1])).items()
+        #         )
         if not isinstance(self.type_hints[0], tuple):  # pragma: no cover
             type_hints = frozenset(self.type_hints)
         else:
@@ -355,7 +368,7 @@ def _generate_key(
         hints = {
             key: value for key, value in get_type_hints(func).items() if key != "return"
         }
-        hints = hints or {"None": None}
+        hints = hints or EMPTY_DICT
         # hints = hints or ()
         print("hints", hints)
         type_hints = _as_ordered_key(hints)
@@ -367,7 +380,7 @@ def _generate_key(
         else:
             type_hints = tuple(type(args[i]) for i in range(len(args)))  # type: ignore # noqa: B950
             if type_hints == ():
-                type_hints = _as_ordered_key({"None": None})
+                type_hints = _as_ordered_key(EMPTY_DICT)
     result = NamespaceKey(
         module=func.__module__,
         qualname=func.__qualname__,
