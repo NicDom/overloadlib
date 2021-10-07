@@ -355,6 +355,9 @@ def _generate_key(
         hints = {
             key: value for key, value in get_type_hints(func).items() if key != "return"
         }
+        hints = hints or {"None": None}
+        # hints = hints or ()
+        print("hints", hints)
         type_hints = _as_ordered_key(hints)
     else:
         if kwargs != {}:
@@ -363,6 +366,8 @@ def _generate_key(
             type_hints = _as_ordered_key(arg_dict)
         else:
             type_hints = tuple(type(args[i]) for i in range(len(args)))  # type: ignore # noqa: B950
+            if type_hints == ():
+                type_hints = _as_ordered_key({"None": None})
     result = NamespaceKey(
         module=func.__module__,
         qualname=func.__qualname__,
