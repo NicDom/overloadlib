@@ -7,6 +7,7 @@ from typing import Any
 from typing import Callable
 from typing import Dict
 from typing import Tuple
+from typing import Union
 from typing import get_type_hints
 
 from dataclasses import dataclass
@@ -22,7 +23,7 @@ from overloadlib.overloadlib import overload
 from overloadlib.overloadlib import override
 
 
-def check_exceptions(func: Function) -> None:
+def check_exceptions(func: Union[Function, Callable[..., Any]]) -> None:
     """Checks all exceptions for the `Function` `func`.
 
     Args:
@@ -214,15 +215,15 @@ def test_add() -> None:
         text: str = "Hello"
 
     @overload
-    def some_func(str_1: str, int_1: int):
+    def some_func(str_1: str, int_1: int) -> str:
         return str_1 + str(int_1)
 
     @some_func.add
-    def _(str_1: str):
+    def _(str_1: str) -> str:
         return str_1
 
     @some_func.add
-    def name_does_not_matter(obj: Some):
+    def name_does_not_matter(obj: Some) -> str:
         return obj.text
 
     assert some_func("This is a number: ", 10) == "This is a number: 10"

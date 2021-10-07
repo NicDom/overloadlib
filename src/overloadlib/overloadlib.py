@@ -456,12 +456,12 @@ class Function(partial):  # type: ignore
         """
         Namespace.get_instance().add(self.func, fn)
 
-    def __call__(self, *args: ArgsType, **kwargs: KwargsType) -> Any:
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
         """Overriding the __call__ function which makes the instance callable.
 
         Args:
-            args (ArgsType): Arguments given to the function.
-            kwargs (KwargsType): Keyword-arguments given to the function.
+            args (Any): Arguments given to the function.
+            kwargs (Any): Keyword-arguments given to the function.
 
         Raises:
             NoFunctionFoundError: If no matching function was found.
