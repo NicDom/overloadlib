@@ -22,14 +22,12 @@ __all__ = ["overload", "override", "func_versions_info"]
 
 ArgsType = Optional[Union[Any, List[Any]]]
 KwargsType = Optional[Dict[str, Any]]
-NspKeyTypeHints = Union[
-    Tuple[Tuple[Any, ...], Tuple[Any, ...]], Tuple[Any, ...], FrozenSet[Any]
-]
+NspKeyTypeHints = Union[Tuple[Tuple[Any, ...], Tuple[Any, ...]], Tuple[Any, ...]]
 
 
 @dataclass(frozen=True)
-class NamespaceKey:
-    """Frozen dataclass representing a namespace key.
+class NamespaceKeyBase:
+    """Base dataclass of `NamespaceKey` and `UnorderedNamespaceKey`.
 
     `Namespace` keys are the keys that uniquely identify an overloaded function
     or method. A `NamespaceKey` is generated whenever a function is overloaded and is
@@ -43,62 +41,11 @@ class NamespaceKey:
         module (str): The module of the overloaded function.
         qualname (str): The __qualname__ of the overloaded function.
         name (str): The __name__ of the overloaded function.
-        type_hints (NspKeyTypeHints): The type_hints of the overloaded function. By
-            default they stored as a tuple of two tuple: the first giving the arg-names,
-            the second giving the the types of the args.
     """
 
     module: str
     qualname: str
     name: str
-    type_hints: NspKeyTypeHints
-
-    @property
-    def unordered(self) -> "NamespaceKey":
-        """Returns the NamespaceKey with "unordered" type hints.
-
-        When comparing keys of the namespace to the one generated, when a function
-        is called, the function was called with the right kwargs, but compared to
-        the stored key in a different order. For these cases we have to create a
-        frozen set of the tuple represting the type hints.
-
-        Returns:
-            NamespaceKey: The NamespaceKey `self`, but with the type hints stored as
-                a frozen set.
-        """
-        if isinstance(self.type_hints, frozenset):
-            return self
-        if not isinstance(self.type_hints[0], tuple):  # pragma: no cover
-            type_hints = frozenset(self.type_hints)
-        else:
-            type_hints = frozenset(
-                dict(zip(self.type_hints[0], self.type_hints[1])).items()
-            )
-        return NamespaceKey(
-            module=self.module,
-            qualname=self.qualname,
-            name=self.name,
-            type_hints=type_hints,
-        )
-
-    @property
-    def meta(self) -> Tuple[str, str, str]:
-        """Returns the meta of the NamespaceKey.
-
-        With meta of a NamespaceKey, we are referring to all information
-        except the type hints, i.e. the module, the __qualname__ and the
-        __name__ of the function, to which this key belongs. The meta are
-        required, whenever we want to now, which `versions` of a certain
-        function are stored in the singleton Namespace.
-
-        Returns:
-            Tuple[str, str, str]: The meta of the key: (module, qualname, name)
-        """
-        return (self.module, self.qualname, self.name)
-
-    #######################################################
-    #     FUNCTIONS FOR __STR__ REPRESENTATION (NamespaceKey)
-    #######################################################
 
     def _str_for_type_hint_dict(self, type_hints: Dict[str, type]) -> str:
         """Private helper function for creating __str__.
@@ -138,7 +85,62 @@ class NamespaceKey:
             [f"{hint.__name__}" for hint in type_hints]
         )  # pragma: no cover
 
-    def _str_unordered(self) -> str:  # pragma: no cover   # type: ignore
+    @property
+    def meta(self) -> Tuple[str, str, str]:
+        """Returns the meta of the unordered `NamespaceKey`.
+
+        With meta of a `NamespaceKey`, we are referring to all information
+        except the type hints, i.e. the module, the __qualname__ and the
+        __name__ of the function, to which this key belongs. The meta are
+        required, whenever we want to now, which `versions` of a certain
+        function are stored in the singleton Namespace.
+
+        Returns:
+            Tuple[str, str, str]: The meta of the key: (module, qualname, name)
+        """
+        return (self.module, self.qualname, self.name)
+
+
+@dataclass(frozen=True)
+class UnorderedNamespaceKey(NamespaceKeyBase):
+    """Frozen dataclass representing a UNORDERED!!! namespace key.
+
+    Same as `NamespaceKey` but with unordered `type_hints`. Introduced to reduce usage
+    of 'isinstance'.
+    `Namespace` keys are the keys that uniquely identify an overloaded function
+    or method. A `NamespaceKey` is generated whenever a function is overloaded and is
+    used as a key in the (singleton) virtual namespace `Namespace` together with the
+    overloaded function. If an overloaded function is called, another `NamespaceKey`
+    corresponding to the given args and kwargs is generated and compared to the
+    keys stored in the virtual namespace to determine the right version of the
+    function.
+
+    Attributes:
+        module (str): The module of the overloaded function.
+        qualname (str): The __qualname__ of the overloaded function.
+        name (str): The __name__ of the overloaded function.
+        type_hints (FrozenSet[Any]): The type_hints of the overloaded function. They are
+            stored as a frozen set of of two tuple: the first giving the arg-names, the
+            second giving the the types of the args.
+    """
+
+    type_hints: FrozenSet[Any]
+
+    @property
+    def unordered(self) -> "UnorderedNamespaceKey":
+        """Returns the NamespaceKey with "unordered" type hints, thus `self`.
+
+        When comparing keys of the namespace to the one generated, when a function
+        is called, the function was called with the right kwargs, but compared to
+        the stored key in a different order. For these cases we have to create a
+        frozen set of the tuple represting the type hints.
+
+        Returns:
+            NamespaceKey: The UnorderedNamespaceKey `self`.
+        """
+        return self
+
+    def _str_unordered(self) -> str:  # pragma: no cover
         """Private helper function for creating __str__.
 
         Called if the NamespaceKey type hints are unordered.
@@ -148,12 +150,85 @@ class NamespaceKey:
         """
         msg = f"({self.module}.{self.qualname}):"
         try:
-            type_hints = dict(self.type_hints)  # type: ignore
+            type_hints = dict(self.type_hints)
             msg += self._str_for_type_hint_dict(type_hints)
         except (TypeError, ValueError):
             type_hints = tuple(self.type_hints)  # type: ignore
             msg += self._str_for_type_hint_tuple(type_hints)  # type: ignore
         return msg
+
+    def __str__(self) -> str:
+        """String representation of the key.
+
+        The string representation has the following form:
+        (`self.module`.`self.qualname`):
+            def self.name(arg_1: type(arg_1),...):
+                ...
+
+        Returns:
+            str: The string representation of a key, e.g.
+                "(module.Some.func):
+                     def func(var: int, var_2: str):
+                         ..."
+        """
+        return self._str_unordered()
+
+
+@dataclass(frozen=True)
+class NamespaceKey(NamespaceKeyBase):
+    """Frozen dataclass representing a ORDERED (standard) namespace key.
+
+    `Namespace` keys are the keys that uniquely identify an overloaded function
+    or method. A `NamespaceKey` is generated whenever a function is overloaded and is
+    used as a key in the (singleton) virtual namespace `Namespace` together with the
+    overloaded function. If an overloaded function is called, another `NamespaceKey`
+    corresponding to the given args and kwargs is generated and compared to the
+    keys stored in the virtual namespace to determine the right version of the
+    function.
+
+    Attributes:
+        module (str): The module of the overloaded function.
+        qualname (str): The __qualname__ of the overloaded function.
+        name (str): The __name__ of the overloaded function.
+        type_hints (NspKeyTypeHints): The type_hints of the overloaded function. By
+            default they stored as a tuple of two tuple: the first giving the arg-names,
+            the second giving the the types of the args.
+    """
+
+    module: str
+    qualname: str
+    name: str
+    type_hints: NspKeyTypeHints
+
+    @property
+    def unordered(self) -> UnorderedNamespaceKey:
+        """Returns the NamespaceKey with "unordered" type hints.
+
+        When comparing keys of the namespace to the one generated, when a function
+        is called, the function was called with the right kwargs, but compared to
+        the stored key in a different order. For these cases we have to create a
+        frozen set of the tuple represting the type hints.
+
+        Returns:
+            UnorderedNamespaceKey: The NamespaceKey `self`, but with the type hints
+                stored as a frozen set.
+        """
+        if not isinstance(self.type_hints[0], tuple):  # pragma: no cover
+            type_hints = frozenset(self.type_hints)
+        else:
+            type_hints = frozenset(
+                dict(zip(self.type_hints[0], self.type_hints[1])).items()
+            )
+        return UnorderedNamespaceKey(
+            module=self.module,
+            qualname=self.qualname,
+            name=self.name,
+            type_hints=type_hints,
+        )
+
+    #########################################################
+    #     FUNCTIONS FOR __STR__ REPRESENTATION (NamespaceKey)
+    #########################################################
 
     def _str_ordered(self) -> str:  # pragma: no cover
         """Private helper function for creating __str__.
@@ -165,7 +240,7 @@ class NamespaceKey:
         """
         msg = f"({self.module}.{self.qualname}):"
         try:
-            type_hints = dict(zip(self.type_hints[0], self.type_hints[1]))  # type: ignore # noqa: B950
+            type_hints = dict(zip(self.type_hints[0], self.type_hints[1]))
             msg += self._str_for_type_hint_dict(type_hints)
         except (TypeError, ValueError):
             type_hints = self.type_hints  # type: ignore
@@ -186,10 +261,7 @@ class NamespaceKey:
                      def func(var: int, var_2: str):
                          ..."
         """
-        if isinstance(self.type_hints, frozenset):
-            return self._str_unordered()
-        else:
-            return self._str_ordered()
+        return self._str_ordered()
 
     ############################################################
     #  END OF FUNCTIONS FOR __STR__ REPRESENTATION (NamespaceKey)
@@ -324,9 +396,6 @@ class NoFunctionFoundError(PyOverloadError):
             self.message += f"\nThe following call was made:\n{func_key}"
         super().__init__(self.message)
 
-    # def __str__(self) -> str:
-    #     return self.message
-
 
 ######################################
 #          FUNCTION WRAPPER
@@ -341,7 +410,7 @@ class Function(partial):  # type: ignore
     Args:
         func (Callable): The function we want to wrap. (c.f. functools.partial)
         args (ArgsTape): Optional arguments. (c.f. functools.partial)
-        keywors (KwargsType): Optional keywords. (c.f. functools.partial)
+        keywords (KwargsType): Optional keywords. (c.f. functools.partial)
     """
 
     def __init__(
@@ -634,7 +703,7 @@ class Namespace(object):
         """
         opt_keys = self.keys_matching_func_name(func_key=func_key)
         for key in opt_keys:
-            args = key.type_hints[-1]  # type: ignore
+            args = key.type_hints[-1]
             if func_key.type_hints == args:
                 return self.function_map.get(key)
         return None
@@ -651,12 +720,10 @@ class Namespace(object):
             Optional[Function]: The wrapped function, if a match was found,
                 None otherwise.
         """
-        if not isinstance(func_key.type_hints, frozenset):
-            copy = tuple(key.unordered for key in self.function_map.keys())
-            key_dict = dict(zip(copy, self.function_map.keys()))
-            match = key_dict.get(func_key.unordered)
-            return self.function_map.get(match)  # type: ignore
-        return None  # pragma: no cover
+        copy = tuple(key.unordered for key in self.function_map.keys())
+        key_dict = dict(zip(copy, self.function_map.keys()))
+        match = key_dict.get(func_key.unordered)
+        return self.function_map.get(match)  # type: ignore
 
     def func_arg_names_matchin_kwargs_keys(
         self, func_key: NamespaceKey
@@ -669,16 +736,8 @@ class Namespace(object):
         Returns:
             List[NamespaceKey]: The matching keys in the virtual namespace.
         """
-        if not isinstance(func_key.type_hints, frozenset):
-            opt_keys = self.keys_matching_func_name(func_key=func_key)
-            return [
-                key
-                for key in opt_keys
-                if func_key.type_hints[0]
-                == key.type_hints[0]  # type:  ignore # noqa:  B950
-            ]
-        else:
-            return []  # pragma: no cover
+        opt_keys = self.keys_matching_func_name(func_key=func_key)
+        return [key for key in opt_keys if func_key.type_hints[0] == key.type_hints[0]]
 
 
 def overload(fn: Callable[..., Any]) -> Function:
