@@ -51,7 +51,7 @@ class NamespaceKeyBase:
     qualname: str
     name: str
 
-    def _str_for_type_hint_dict(self, type_hints: Dict[str, type]) -> str:
+    def _str_for_type_hint_dict(self, type_hints: Dict[str, Union[type, None]]) -> str:
         """Private helper function for creating __str__.
 
         Called if `self.type_hints` are valid dict, and thus, only if the
@@ -59,17 +59,22 @@ class NamespaceKeyBase:
         kwargs.
 
         Args:
-            type_hints (Dict[str, type]): Type hints for the key.
+            type_hints (Dict[str, Union[type, None]]): Type hints for the key.
 
         Returns:
             str: The string representation for the type_hints of the key.
         """
         if type_hints == EMPTY_DICT:
             return f"\n\t {self.name}():\n\t\t..."
+        # isinstance below might hide errors
         return (
             f"\n\t def {self.name}("
             + ", ".join(
-                [f"{key}: {value.__name__}" for key, value in type_hints.items()]
+                [
+                    f"{key}: {value.__name__}"
+                    for key, value in type_hints.items()
+                    if isinstance(value, type)
+                ]
             )
             + "):\n\t\t..."
         )
@@ -378,9 +383,8 @@ def _generate_key(
                 arg_dict[key] = type(value)
             type_hints = _as_ordered_key(arg_dict)
         else:
-            type_hints = tuple(type(args[i]) for i in range(len(args)))  # type: ignore # noqa: B950
-            if type_hints == ():
-                type_hints = _as_ordered_key(EMPTY_DICT)
+            hints = tuple(type(args[i]) for i in range(len(args)))  # type: ignore # noqa: B950
+            type_hints = hints or _as_ordered_key(EMPTY_DICT)  # type: ignore
     result = NamespaceKey(
         module=func.__module__,
         qualname=func.__qualname__,
