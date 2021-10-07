@@ -266,7 +266,7 @@ def test_all_mixed() -> None:
     def _(obj: Some) -> str:
         return obj.text
 
-    @overload
+    @overload  # type: ignore[no-redef]
     def func() -> str:
         return "Functions don't need to have arguments."
 
