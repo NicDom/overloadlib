@@ -20,6 +20,10 @@ from functools import wraps
 __all__ = ["overload", "override", "func_versions_info"]
 
 
+# Used when `Function`arguments are empty
+EMPTY_DICT = {"None": None}
+
+
 ArgsType = Optional[Union[Any, List[Any]]]
 KwargsType = Optional[Dict[str, Any]]
 NspKeyTypeHints = Union[Tuple[Tuple[Any, ...], Tuple[Any, ...]], Tuple[Any, ...]]
@@ -47,7 +51,7 @@ class NamespaceKeyBase:
     qualname: str
     name: str
 
-    def _str_for_type_hint_dict(self, type_hints: Dict[str, type]) -> str:
+    def _str_for_type_hint_dict(self, type_hints: Dict[str, Union[type, None]]) -> str:
         """Private helper function for creating __str__.
 
         Called if `self.type_hints` are valid dict, and thus, only if the
@@ -55,15 +59,22 @@ class NamespaceKeyBase:
         kwargs.
 
         Args:
-            type_hints (Dict[str, type]): Type hints for the key.
+            type_hints (Dict[str, Union[type, None]]): Type hints for the key.
 
         Returns:
             str: The string representation for the type_hints of the key.
         """
+        if type_hints == EMPTY_DICT:
+            return f"\n\t {self.name}():\n\t\t..."
+        # isinstance below might hide errors
         return (
             f"\n\t def {self.name}("
             + ", ".join(
-                [f"{key}: {value.__name__}" for key, value in type_hints.items()]
+                [
+                    f"{key}: {value.__name__}"
+                    for key, value in type_hints.items()
+                    if isinstance(value, type)
+                ]
             )
             + "):\n\t\t..."
         )
@@ -81,8 +92,10 @@ class NamespaceKeyBase:
         Returns:
             str: The string representation for the type_hints of the key.
         """
-        return f"\n\t Received call as {self.name}(" + ", ".join(
-            [f"{hint.__name__}" for hint in type_hints]
+        return (
+            f"\n\t{self.name}("
+            + ", ".join([f"{hint.__name__}" for hint in type_hints])
+            + ")"
         )  # pragma: no cover
 
     @property
@@ -242,7 +255,7 @@ class NamespaceKey(NamespaceKeyBase):
         try:
             type_hints = dict(zip(self.type_hints[0], self.type_hints[1]))
             msg += self._str_for_type_hint_dict(type_hints)
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, IndexError):
             type_hints = self.type_hints  # type: ignore
             msg += self._str_for_type_hint_tuple(type_hints)  # type: ignore
         return msg
@@ -353,6 +366,7 @@ def _generate_key(
         hints = {
             key: value for key, value in get_type_hints(func).items() if key != "return"
         }
+        hints = hints or EMPTY_DICT
         type_hints = _as_ordered_key(hints)
     else:
         if kwargs != {}:
@@ -360,7 +374,8 @@ def _generate_key(
                 arg_dict[key] = type(value)
             type_hints = _as_ordered_key(arg_dict)
         else:
-            type_hints = tuple(type(args[i]) for i in range(len(args)))  # type: ignore # noqa: B950
+            hints = tuple(type(args[i]) for i in range(len(args)))  # type: ignore # noqa: B950
+            type_hints = hints or _as_ordered_key(EMPTY_DICT)  # type: ignore
     result = NamespaceKey(
         module=func.__module__,
         qualname=func.__qualname__,
@@ -447,12 +462,21 @@ class Function(partial):  # type: ignore
         self.owner = owner or self
         return self
 
-    def __call__(self, *args: ArgsType, **kwargs: KwargsType) -> Any:
+    def add(self, fn: Callable[..., Any]) -> None:
+        """Adds the call of `fn` to calls of `self`.
+
+        Args:
+            fn (Callable[..., Any]): A callable, whose call we want to add to
+                calls of `self`.
+        """
+        Namespace.get_instance().add(self.func, fn)
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
         """Overriding the __call__ function which makes the instance callable.
 
         Args:
-            args (ArgsType): Arguments given to the function.
-            kwargs (KwargsType): Keyword-arguments given to the function.
+            args (Any): Arguments given to the function.
+            kwargs (Any): Keyword-arguments given to the function.
 
         Raises:
             NoFunctionFoundError: If no matching function was found.
@@ -567,28 +591,30 @@ class Namespace(object):
             ValueError: If `child_fn` is no `Function` or `Callable`.
         """
         if isinstance(child_fn, Function):
-            type_hints = child_fn.key().type_hints
+            type_hints_list = [
+                func_key.type_hints for func_key in get_overloads(child_fn)
+            ]
         elif isinstance(child_fn, Callable):  # type: ignore[arg-type]
             hints = {
                 key: value
                 for key, value in get_type_hints(child_fn).items()
                 if key != "return"
             }
-            type_hints = _as_ordered_key(hints)
+            type_hints_list = [_as_ordered_key(hints)]
         else:  # pragma: no cover
             raise (
                 ValueError(
                     f"The child 'child_fn' needs to be a callable or a of type {Function}, but is of type {type(child_fn)}."  # noqa: B950
                 )
             )
-
-        key = NamespaceKey(
-            module=parent_fn.__module__,
-            qualname=parent_fn.__qualname__,
-            name=parent_fn.__name__,
-            type_hints=type_hints,
-        )
-        self.function_map[key] = child_fn
+        for type_hints in type_hints_list:
+            key = NamespaceKey(
+                module=parent_fn.__module__,
+                qualname=parent_fn.__qualname__,
+                name=parent_fn.__name__,
+                type_hints=type_hints,
+            )
+            self.function_map[key] = child_fn
 
     def get(
         self, fn: Callable[..., Any], *args: Any, **kwargs: Any
@@ -738,6 +764,11 @@ class Namespace(object):
         """
         opt_keys = self.keys_matching_func_name(func_key=func_key)
         return [key for key in opt_keys if func_key.type_hints[0] == key.type_hints[0]]
+
+
+##############################################
+#  DECORATORS FOR OVERLOADING OF FUNCTIONS
+##############################################
 
 
 def overload(fn: Callable[..., Any]) -> Function:

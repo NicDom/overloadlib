@@ -39,7 +39,7 @@ Overloadlib
 Features
 --------
 
-* Introduces ``@overload`` and ``@override`` decorators, allowing one to overload and override functions. Functions are then called according to their argument types:
+* Introduces ``@overload``, ``@override`` and ``@<Function>.add`` decorators, allowing one to overload and override functions. Functions are then called according to their argument types:
 
 .. code-block:: python
 
@@ -47,12 +47,26 @@ Features
    def func(var: str):
       return var
 
-   @overload
-   def func(var: int):
+   # via @<Function>.add
+   @func.add
+   def _(var: int) -> str:
       return str(var * 5)
 
-   func("a") == "a"  # True
-   "a: " + func(1)  # "a: 5"
+   # via @overload
+   @overload
+   def func() -> str:
+      return "Functions don't need to have arguments."
+
+   # via @override
+   @override(funcs=[func])
+   def new(str_1: str, int_1: int):
+      return str_1 * int_1
+
+   assert func("a") == "a" == new("a")
+   assert func(1) == "5" == new(1)
+   assert func() == "Functions don't need to have arguments." == new()
+   assert new("house", 2) == "househouse"
+
 
 * Raises human readable errors, if no callable was determined with the given arguments. For example the following given:
 

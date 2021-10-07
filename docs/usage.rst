@@ -124,6 +124,79 @@ Possible calls could now look like this:
    new_func(1) == func_int(1) == "I am an integer"  # True
    new_func(1, "a") == func_both(1, "a") == "a"  # True
 
+Overriding ``Function``\ ’s (callables that are decorated with
+``@overload``) overrides every *version* of that ``Function``:
+
+.. code:: python
+
+   @dataclass
+   class Some:
+       text: str = "Hello"
+
+   @overload
+   def func(str_1: str) -> str:
+       return str_1
+
+   @func.add
+   def _(obj: Some) -> str:
+       return obj.text
+
+   @overload
+   def func() -> str:
+       return "Functions don't need to have arguments."
+
+   # adds all previously defined overloads/'version' of `func` to `new`
+   @override(funcs=[func])
+   def new(str_1: str, int_1: int) -> str:
+       return str_1 * int_1
+
+   assert new("a") == "a" == func("a")
+   assert new(Some()) == "Hello" == func(Some())
+   assert new() == "Functions don't need to have arguments." == func()
+   assert new("house", 2) == "househouse"
+
+@<Function>.add
+~~~~~~~~~~~~~~~
+
+You can always add a new callable to an existing *overloaded* callable
+``<func>`` using the ``@<func>.add`` decorator:
+
+.. code:: python
+
+
+   @overload
+   def some_func(str_1: str, int_1: int) -> str:
+       return str_1 + str(int_1)
+
+   @some_func.add
+   def _(str_1: str) -> str:
+       return str_1
+
+   @some_func.add
+   def name_does_not_matter() -> str:
+       return "I return some text."
+
+   @some_func.add
+   def _(str_1: str, str_2: str) -> str:
+       return str_1 + str_2
+
+   assert some_func("This is a number: ", 10) == "This is a number: 10"
+   assert some_func("cheese") == "cheese"
+   assert some_func(Some()) == "Hello"
+
+The name of the callable’s you are adding don’t matter and you can also
+always use the same name, when adding. However, as using the same name
+for added functions, clashes with ``[no-redef]`` error of mypy_, it is
+recommended to use different ones (this also increases the readability
+of the code). [1]_
+
+Usage of ``@override`` and ``@<Function>.add`` is recommended over usage
+of ``@overload`` only, when working with static type checkers like mypy_.
+
+.. [1]
+   It should also be stressed, that ``@<func>.add`` only works with a
+   previously with ``@overload`` decorated function \`.
+
 func_versions_info
 ~~~~~~~~~~~~~~~~~~
 
@@ -151,6 +224,6 @@ If you want to get all versions of a certain function ``<myfunc>``, use
 Common Mistakes and Limitations
 -------------------------------
 
--  Overloading using overload raises problems with mypy_. This can be circumvented using ``@override`` instead of ``@overload``.
+-  Overloading using overload raises problems with mypy_. This can be circumvented using ``@override`` (or ``@<func>.add``) instead of ``@overload``.
 
 .. _mypy : http://mypy-lang.org/

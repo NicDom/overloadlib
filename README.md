@@ -19,19 +19,32 @@ A python package to implement overloading of functions in python.
 
 ## Features
 
-- Introduces `@overload` and `@override` decorators, allowing one to overload and override functions. Functions are then called according to their argument types:
+- Introduces `@overload`, `@override` and `@<Function>.add` decorators, allowing one to overload and override functions. Functions are then called according to their argument types:
 
 ```python
 @overload
 def func(var: str):
     return var
 
-@overload
-def func(var: int):
+#via @<Function>.add
+@func.add
+def _(var: int) -> str:
     return str(var * 5)
 
-func("a") == "a"  # True
-"a: " + func(1)  # "a: 5"
+#via @overload
+@overload
+def func() -> str:
+    return "Functions don't need to have arguments."
+
+#via @override
+@override(funcs=[func])
+def new(str_1: str, int_1: int):
+    return str_1 * int_1
+
+assert func("a") == "a" == new("a")
+assert func(1) == "5" == new(1)
+assert func() == "Functions don't need to have arguments." == new()
+assert new("house", 2) == "househouse"
 ```
 
 - Raises human readable errors, if no callable was determined with the given arguments:
@@ -155,18 +168,18 @@ poetry remove overloadlib
 <summary>Import</summary>
 <p>
 
-Imports need to come form `overloadlib.overloadlib`. Importing via
+Imports need to come form `overloadlib`. Importing via
 
 ```python
-from overloadlib.overloadlib import *
+from overloadlib import *
 ```
 
-imports `overload` and `override` decorators, as well ass `func_versions_info`.
+imports `overload`, `override` and `<Function>.add` decorators, as well as `func_versions_info`.
 
 </p>
 </details>
 
-Overloading of functions can be done via the `@overload` or `@override` decorator.
+Overloading of functions can be done via the `@overload`, `@override` or `@<Function>.add` decorator.
 
 ### @overload
 
@@ -257,6 +270,69 @@ new_func("a") == func_str("a") == "I am a string"  # True
 new_func(1) == func_int(1) == "I am an integer"  # True
 new_func(1, "a") == func_both(1, "a") == "a"  # True
 ```
+
+Overriding `Function`'s (callables that are decorated with `@overload`) overrides every _version_ of that `Function`:
+
+```python
+@dataclass
+class Some:
+    text: str = "Hello"
+
+@overload
+def func(str_1: str) -> str:
+    return str_1
+
+@func.add
+def _(obj: Some) -> str:
+    return obj.text
+
+@overload
+def func() -> str:
+    return "Functions don't need to have arguments."
+
+# adds all previously defined overloads/'version' of `func` to `new`
+@override(funcs=[func])
+def new(str_1: str, int_1: int) -> str:
+    return str_1 * int_1
+
+assert new("a") == "a" == func("a")
+assert new(Some()) == "Hello" == func(Some())
+assert new() == "Functions don't need to have arguments." == func()
+assert new("house", 2) == "househouse"
+```
+
+### @\<Function>.add
+
+You can always add a new callable to an existing _overloaded_ callable `<func>` using the `@<func>.add` decorator:
+
+```python
+
+@overload
+def some_func(str_1: str, int_1: int) -> str:
+    return str_1 + str(int_1)
+
+@some_func.add
+def _(str_1: str) -> str:
+    return str_1
+
+@some_func.add
+def name_does_not_matter() -> str:
+    return "I return some text."
+
+@some_func.add
+def _(str_1: str, str_2: str) -> str:
+    return str_1 + str_2
+
+assert some_func("This is a number: ", 10) == "This is a number: 10"
+assert some_func("cheese") == "cheese"
+assert some_func(Some()) == "Hello"
+```
+
+The name of the callable's you are adding don't matter and you can also always use the same name, when adding. However, as using the same name for added functions, clashes with `[no-redef]` error of mypy\_, it is recommended to use different ones (this also increases the readability of the code).[^1]
+
+[^1]: It should also be stressed, that `@<func>.add` only works for a with `@overload` decorated function `<func>.
+
+Usage of `@override` and `@<Function>.add` is recommended over usage of `@overload` only.
 
 ### func_versions_info
 

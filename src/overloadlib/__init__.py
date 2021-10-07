@@ -3,6 +3,13 @@
 
 import sys
 
+from overloadlib.overloadlib import func_versions_info
+from overloadlib.overloadlib import overload
+from overloadlib.overloadlib import override
+
+__all__ = ["overload", "override", "func_versions_info"]
+
+
 if sys.version_info >= (3, 8):
     from importlib import metadata as importlib_metadata
 else:  # pragma: no cover
