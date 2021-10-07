@@ -241,7 +241,7 @@ def test_add() -> None:
     def name_does_not_matter(obj: Some) -> str:
         return obj.text
 
-    @some_func.add
+    @some_func.add  # type: ignore[no-redef]
     def _(str_1: str, str_2: str) -> str:
         return str_1 + str_2
 
