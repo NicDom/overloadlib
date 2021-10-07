@@ -226,13 +226,6 @@ class NamespaceKey(NamespaceKeyBase):
             UnorderedNamespaceKey: The NamespaceKey `self`, but with the type hints
                 stored as a frozen set.
         """
-        # if len(self.type_hints) > 0:
-        #     if not isinstance(self.type_hints[0], tuple):  # pragma: no cover
-        #         type_hints = frozenset(self.type_hints)
-        #     else:
-        #         type_hints = frozenset(
-        #             dict(zip(self.type_hints[0], self.type_hints[1])).items()
-        #         )
         if not isinstance(self.type_hints[0], tuple):  # pragma: no cover
             type_hints = frozenset(self.type_hints)
         else:
@@ -374,8 +367,6 @@ def _generate_key(
             key: value for key, value in get_type_hints(func).items() if key != "return"
         }
         hints = hints or EMPTY_DICT
-        # hints = hints or ()
-        print("hints", hints)
         type_hints = _as_ordered_key(hints)
     else:
         if kwargs != {}:
@@ -600,30 +591,28 @@ class Namespace(object):
             ValueError: If `child_fn` is no `Function` or `Callable`.
         """
         if isinstance(child_fn, Function):
-            type_hints_list = [
-                func_key.type_hints for func_key in get_overloads(child_fn)
-            ]
+            type_hints = child_fn.key().type_hints
         elif isinstance(child_fn, Callable):  # type: ignore[arg-type]
             hints = {
                 key: value
                 for key, value in get_type_hints(child_fn).items()
                 if key != "return"
             }
-            type_hints_list = [_as_ordered_key(hints)]
+            type_hints = _as_ordered_key(hints)
         else:  # pragma: no cover
             raise (
                 ValueError(
                     f"The child 'child_fn' needs to be a callable or a of type {Function}, but is of type {type(child_fn)}."  # noqa: B950
                 )
             )
-        for type_hints in type_hints_list:
-            key = NamespaceKey(
-                module=parent_fn.__module__,
-                qualname=parent_fn.__qualname__,
-                name=parent_fn.__name__,
-                type_hints=type_hints,
-            )
-            self.function_map[key] = child_fn
+
+        key = NamespaceKey(
+            module=parent_fn.__module__,
+            qualname=parent_fn.__qualname__,
+            name=parent_fn.__name__,
+            type_hints=type_hints,
+        )
+        self.function_map[key] = child_fn
 
     def get(
         self, fn: Callable[..., Any], *args: Any, **kwargs: Any
