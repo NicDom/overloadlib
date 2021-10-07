@@ -103,6 +103,10 @@ def test_overload() -> None:
     def some_func(obj: Some):  # noqa: F811
         return obj.text
 
+    @overload  # type: ignore
+    def some_func():  # noqa: F811
+        return "I am empty"
+
     kwargs = {"str_1": "Number: ", "int_1": 1}
     args = ["Number: ", 1]
     assert some_func(**kwargs) == "Number: 1"
@@ -127,6 +131,7 @@ def test_overload() -> None:
     assert some_func(int_1=1, str_1="Number: ") == "Number: 1"
     assert some_func(Some()) == "Hello"
     assert some_func(obj=Some()) == "Hello"
+    assert some_func() == "I am empty"
 
 
 def test_overload_on_class_method() -> None:
