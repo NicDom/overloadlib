@@ -44,6 +44,9 @@ def check_exceptions(func: Union[Function, Callable[..., Any]]) -> None:
     assert "(int_1: int):" in str(excinfo)
     assert "Following definitions of" in str(excinfo)
     assert "No matching function found." in str(excinfo)
+    with pytest.raises(NoFunctionFoundError) as excinfo:
+        func(1)
+    assert "(int)" in str(excinfo)
 
 
 def as_valid_key(dictionary: Dict[Any, Any]) -> Tuple[Any, Any]:
@@ -117,8 +120,10 @@ def test_overload() -> None:
     assert "'obj' needs to be of type" in str(excinfo)
     with pytest.raises(NoFunctionFoundError) as excinfo:
         some_func(int_1=1)
-    # print(excinfo)
     assert "No matching function found." in str(excinfo)
+    with pytest.raises(NoFunctionFoundError) as excinfo:
+        some_func(1)
+    assert "(int)" in str(excinfo)
     assert some_func(int_1=1, str_1="Number: ") == "Number: 1"
     assert some_func(Some()) == "Hello"
     assert some_func(obj=Some()) == "Hello"
