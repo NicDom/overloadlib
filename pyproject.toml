@@ -58,7 +58,7 @@ pyupgrade = "^2.31.0"
 pre-commit-hooks = "^4.1.0"
 sphinx-rtd-theme = "^1.0.0"
 sphinx-click = "^3.0.2"
-Pygments = "^2.9.0"
+Pygments = "^2.11.2"
 
 [tool.poetry.scripts]
 # Entry points for the package https://python-poetry.org/docs/pyproject/#scripts
