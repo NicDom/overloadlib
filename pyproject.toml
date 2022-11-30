@@ -54,7 +54,7 @@ flake8-rst-docstrings = "^0.2.5"
 pep8-naming = "^0.12.0"
 darglint = "^1.8.1"
 isort = {extras = ["colors"], version = "^5.10.1"}
-pyupgrade = "^2.31.0"
+pyupgrade = "^3.2.3"
 pre-commit-hooks = "^4.1.0"
 sphinx-rtd-theme = "^1.0.0"
 sphinx-click = "^3.1.0"
